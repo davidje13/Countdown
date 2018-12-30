@@ -1,15 +1,30 @@
 'use strict';
 
+const cachedA = new Map();
+const cachedM = new Map();
+
 function aComplexity(value) {
+	let m = cachedA.get(value);
+	if (m !== undefined) {
+		return m;
+	}
+
 	let c = 0;
 	while ((value % 10) === 0) {
 		value /= 10;
 		++ c;
 	}
-	return c + value * 10;
+	c += value * 10;
+	cachedA.set(value, c);
+	return c;
 }
 
 function mComplexity(value) {
+	let m = cachedM.get(value);
+	if (m !== undefined) {
+		return m;
+	}
+
 	let c = 0;
 	while ((value % 10) === 0) {
 		value /= 10;
@@ -29,6 +44,7 @@ function mComplexity(value) {
 	case 12: c += 50; break;
 	default: c += value * 20;
 	}
+	cachedM.set(value, c);
 	return c;
 }
 
