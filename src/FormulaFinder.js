@@ -28,11 +28,11 @@ class FormulaFinder {
 	findAllFormulas(inputs, target) {
 		const operators = this.operators;
 
-		const solutions = [];
 		if (inputs.includes(target)) {
-			solutions.push(Formula.fromLastAction(null));
+			return [Formula.fromLastAction(null)];
 		}
 
+		const solutions = [];
 		let current = new HashMap();
 		current.set(ValueCounter.of(inputs), [null]);
 
@@ -45,7 +45,10 @@ class FormulaFinder {
 				}
 				if (v === target) {
 					for (const act of entry.slice(-prevActs.length)) {
-						solutions.push(Formula.fromLastAction(act));
+						const formula = Formula.fromLastAction(act);
+						if (formula._isMinimal(inputs)) {
+							solutions.push(formula);
+						}
 					}
 				}
 			});

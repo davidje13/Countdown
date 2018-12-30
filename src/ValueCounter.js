@@ -18,6 +18,10 @@ class ValueCounter {
 		return new ValueCounter(new Map(this.counts));
 	}
 
+	has(v) {
+		return this.counts.get(v) > 0;
+	}
+
 	inc(v) {
 		this.counts.set(v, (this.counts.get(v) || 0) + 1);
 		return this;

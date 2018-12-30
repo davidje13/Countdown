@@ -54,6 +54,39 @@ class Formula {
 		return this.cachedDifficulty;
 	}
 
+	_isMinimal(inputs) {
+		if (this.actions.length === 0) {
+			return true;
+		}
+
+		const steps = this.actions.map((action) => ({
+			a: action.a,
+			b: action.b,
+			result: action.result(),
+		}));
+		const required = [steps[steps.length - 1].result];
+		const inputValues = ValueCounter.of(inputs);
+
+		while (required.length > 0) {
+			const target = required.pop();
+			if (inputValues.has(target)) {
+				inputValues.dec(target);
+				continue;
+			}
+			for (let i = 0; i < steps.length; ++ i) {
+				const step = steps[i];
+				if (step.result === target) {
+					required.push(step.a);
+					required.push(step.b);
+					steps.splice(i, 1);
+					break;
+				}
+			}
+		}
+
+		return steps.length === 0;
+	}
+
 	length() {
 		return this.actions.length;
 	}

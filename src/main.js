@@ -2,7 +2,7 @@
 
 const finder = new FormulaFinder(COUNTDOWN_RULES);
 
-const minTarget = 1;
+const minTarget = 101;
 const maxTarget = 999;
 
 function buildUI(defaultInputs, defaultTarget) {

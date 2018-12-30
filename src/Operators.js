@@ -55,10 +55,15 @@ const Operators = {
 		name: '/',
 		supports: (a, b) => (b !== 0 && (a % b) === 0),
 		apply: (a, b) => ((a / b)|0),
-		difficulty: (a, b) => (Math.min(
-			mComplexity(a) + mComplexity(b),
-			Math.min(mComplexity(a), mComplexity(b)) + mComplexity((a / b)|0) * 2
-		) * 100),
+		difficulty: (a, b) => {
+			if (a === b) {
+				return 1;
+			}
+			const ca = mComplexity(a);
+			const cb = mComplexity(b);
+			const cr = mComplexity((a / b)|0);
+			return Math.min(ca + cb, ca + cr * 2, cb + cr * 2) * 100;
+		},
 	},
 };
 
