@@ -225,17 +225,17 @@ function analyseGames(selection, inputCount) {
 	}
 
 	return (
-		'Total permutations: ' + (games.length + impossible.length) +
+		'Total permutations: ' + (games.length + impossible.length) + '\n' +
 		'Impossible numbers:\n' + impossible.map((l) => l.join(',')).join('\n') +
-		'Easiest game: ' + representGame(easiest.inputs, easiest.easiest) +
-		'Hardest game: ' + representGame(hardest.inputs, hardest.hardest) +
-		'Easiest numbers: ' + easiestNumbers.inputs.join(',') +
-		'Hardest numbers: ' + hardestNumbers.inputs.join(',') +
-		'Typically easiest numbers: ' + easiestAverage.inputs.join(',') +
-		'Typically hardest numbers: ' + hardestAverage.inputs.join(',') +
+		'Easiest game: ' + representGame(easiest.inputs, easiest.easiest) + '\n' +
+		'Hardest game: ' + representGame(hardest.inputs, hardest.hardest) + '\n' +
+		'Easiest numbers: ' + easiestNumbers.inputs.join(',') + '\n' +
+		'Hardest numbers: ' + hardestNumbers.inputs.join(',') + '\n' +
+		'Typically easiest numbers: ' + easiestAverage.inputs.join(',') + '\n' +
+		'Typically hardest numbers: ' + hardestAverage.inputs.join(',') + '\n' +
 
 		'-- ' + ((tm1 - tm0) * 0.001).toFixed(3) + 's ' +
-		'(' + ((tm1 - tm0) * 0.001 / games.length).toFixed(3) + 's per game)'
+		'(' + ((tm1 - tm0) * 0.001 / games.length).toFixed(3) + 's per game)\n'
 	);
 }
 
