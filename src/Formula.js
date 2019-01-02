@@ -8,6 +8,15 @@ class Action {
 		this.prev = prev;
 	}
 
+	toJSON() {
+		return {
+			a: this.a,
+			b: this.b,
+			op: this.op.name,
+			r: this.result(),
+		};
+	}
+
 	result() {
 		return this.op.apply(this.a, this.b);
 	}
@@ -29,21 +38,56 @@ class Action {
 	}
 }
 
+class FlatAction {
+	static fromJSON({a, b, op, r}) {
+		return new FlatAction(a, b, op, r);
+	}
+
+	constructor(a, b, op, r) {
+		this.a = a;
+		this.b = b;
+		this.op = op;
+		this.r = r;
+	}
+
+	result() {
+		return this.r;
+	}
+
+	toString() {
+		return (
+			this.a +
+			' ' +
+			this.op +
+			' ' +
+			this.b +
+			' = ' +
+			this.r
+		);
+	}
+}
+
 class Formula {
 	static fromLastAction(lastAction) {
 		const actions = [];
+		let d = 0;
 		for (let action = lastAction; action !== null; action = action.prev) {
 			actions.unshift(action);
+			d += action.difficulty();
 		}
-		return new Formula(actions);
+		return new Formula(actions, d);
 	}
 
-	constructor(actions) {
+	static fromJSON({actions, difficulty}) {
+		return new Formula(
+			actions.map(FlatAction.fromJSON),
+			difficulty
+		);
+	}
+
+	constructor(actions, difficulty) {
 		this.actions = actions;
-		this.difficulty = 0;
-		for (const action of actions) {
-			this.difficulty += action.difficulty();
-		}
+		this.difficulty = difficulty;
 		this.length = actions.length;
 	}
 
@@ -78,6 +122,13 @@ class Formula {
 		}
 
 		return steps.length === 0;
+	}
+
+	toJSON() {
+		return {
+			actions: this.actions.map((action) => action.toJSON()),
+			difficulty: this.difficulty,
+		};
 	}
 
 	toString() {

@@ -1,6 +1,10 @@
 'use strict';
 
-const finder = new FormulaFinder(COUNTDOWN_RULES);
+const workerCount = 4;
+const workers = [];
+for (let i = 0; i < workerCount; ++ i) {
+	workers.push(new AsyncFormulaFinder(COUNTDOWN_RULES));
+}
 
 const minTarget = 101;
 const maxTarget = 999;
@@ -40,16 +44,7 @@ function buildUI(defaultInputs, defaultTarget) {
 	const output = document.createElement('pre');
 	form.appendChild(output);
 
-	function calculate(inputs, target) {
-		const tm0 = Date.now();
-		const targets = finder.findTargets(inputs, {
-			min: minTarget,
-			max: maxTarget,
-		});
-		const tm1 = Date.now();
-		const solutions = finder.findAllFormulas(inputs, target);
-		const tm2 = Date.now();
-
+	function showOutput(targets, targetsTime, solutions, solutionsTime) {
 		let message = '';
 
 		if (solutions.length > 0) {
@@ -61,7 +56,7 @@ function buildUI(defaultInputs, defaultTarget) {
 			const shortest = solutions[0];
 
 			message += easiest.toString();
-			message += '-- calculated in ' + (tm2 - tm1) + 'ms\n\n';
+			message += '-- calculated in ' + solutionsTime + 'ms\n\n';
 
 			if (easiest.difficulty + 500 < hardest.difficulty) {
 				message += 'Hardest method:\n' + hardest.toString() + '\n';
@@ -81,7 +76,7 @@ function buildUI(defaultInputs, defaultTarget) {
 		for (let i = 0; i < Math.min(targets.length, 20); ++ i) {
 			message += targets[i].value + '\n';
 		}
-		message += '-- calculated in ' + (tm1 - tm0) + 'ms\n\n';
+		message += '-- calculated in ' + targetsTime + 'ms\n\n';
 
 		const impossibleCount = maxTarget - minTarget + 1 - targets.length;
 		if (impossibleCount > 0) {
@@ -105,7 +100,21 @@ function buildUI(defaultInputs, defaultTarget) {
 			inputs.push(inputField.value|0);
 		}
 		const target = targetField.value|0;
-		setTimeout(() => calculate(inputs, target), 0);
+
+		Promise.all([
+			workers[0].findTargets(inputs, {
+				min: minTarget,
+				max: maxTarget,
+			}),
+			workers[1].findAllFormulas(inputs, target),
+		]).then(([targetData, solutionsData]) => {
+			showOutput(
+				targetData.targets,
+				targetData.time,
+				solutionsData.solutions,
+				solutionsData.time
+			);
+		});
 	}
 
 	form.addEventListener('submit', (e) => {
@@ -129,7 +138,9 @@ function buildAnalyser(selection, inputCount) {
 	form.appendChild(output);
 
 	function calculate() {
-		output.textContent = analyseGames(selection, inputCount);
+		analyseGames(selection, inputCount, (txt) => {
+			output.textContent = txt;
+		});
 	}
 
 	function beginCalculate() {
@@ -151,7 +162,7 @@ const selectionSmall = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9];
 
 function _choices(list, count, begin, pos, storage, fn) {
 	if (pos === count) {
-		fn(storage);
+		fn(storage.slice());
 		return;
 	}
 	let last = null;
@@ -171,72 +182,86 @@ function choices(list, count, fn) {
 	_choices(vs, count, 0, 0, temp, fn);
 }
 
-function analyseGames(selection, inputCount) {
+function analyseGames(selection, inputCount, callback) {
 	const games = [];
-	const impossible = [];
-	const tm0 = Date.now();
-	let totalGames = 0;
-	choices(selection, inputCount, () => (totalGames ++));
-	console.log('Analysing ' + totalGames + ' games...');
 
-	choices(selection, inputCount, (inputs) => {
-		const targets = finder.findTargets(inputs, {
-			min: minTarget,
-			max: maxTarget,
-		});
-		if (targets.length === 0) {
-			impossible.push(inputs.slice());
+	const tm0 = Date.now();
+	choices(selection, inputCount, (inputs) => games.push(inputs));
+	const totalGames = games.length;
+
+	const batchSize = 10;
+
+	const impossible = [];
+	const results = [];
+
+	function nextBatch(worker) {
+		if (games.length === 0) {
+			if ((-- inFlight) === 0) {
+				finish();
+			}
 			return;
 		}
-		targets.sort((a, b) => (a.difficulty - b.difficulty));
-		const achievable = targets.length;
-		const easiest = targets[0] || null;
-		const hardest = targets[targets.length - 1] || null;
-		let averageDifficulty = 0;
-		for (const target of targets) {
-			averageDifficulty += target.difficulty;
-		}
-		averageDifficulty /= achievable;
-		games.push({
-			inputs: inputs.slice(),
-			achievable,
-			easiest,
-			hardest,
-			averageDifficulty,
+
+		callback(
+			'Analysing ' + totalGames + ' games... ' +
+			(totalGames - games.length) + ' / ' + totalGames
+		);
+
+		const batch = games.splice(-batchSize);
+		worker.analyse(batch, {
+			min: minTarget,
+			max: maxTarget,
+		}).then(({analysis, time}) => {
+			for (const a of analysis) {
+				if (a.achievable === 0) {
+					impossible.push(a.inputs);
+				} else {
+					results.push(a);
+				}
+			}
+			nextBatch(worker);
 		});
-		console.log('.');
-	});
-	const tm1 = Date.now();
-
-	games.sort((a, b) => (a.easiest.difficulty - b.easiest.difficulty));
-	const easiest = games[0];
-	const hardestNumbers = games[games.length - 1];
-
-	games.sort((a, b) => (a.hardest.difficulty - b.hardest.difficulty));
-	const easiestNumbers = games[0];
-	const hardest = games[games.length - 1];
-
-	games.sort((a, b) => (a.averageDifficulty - b.averageDifficulty));
-	const easiestAverage = games[0];
-	const hardestAverage = games[games.length - 1];
-
-	function representGame(inputs, game) {
-		return inputs.join(',') + ' -> ' + game.value;
 	}
 
-	return (
-		'Total permutations: ' + (games.length + impossible.length) + '\n' +
-		'Impossible numbers:\n' + impossible.map((l) => l.join(',')).join('\n') +
-		'Easiest game: ' + representGame(easiest.inputs, easiest.easiest) + '\n' +
-		'Hardest game: ' + representGame(hardest.inputs, hardest.hardest) + '\n' +
-		'Easiest numbers: ' + easiestNumbers.inputs.join(',') + '\n' +
-		'Hardest numbers: ' + hardestNumbers.inputs.join(',') + '\n' +
-		'Typically easiest numbers: ' + easiestAverage.inputs.join(',') + '\n' +
-		'Typically hardest numbers: ' + hardestAverage.inputs.join(',') + '\n' +
+	function finish() {
+		const tm1 = Date.now();
 
-		'-- ' + ((tm1 - tm0) * 0.001).toFixed(3) + 's ' +
-		'(' + ((tm1 - tm0) * 0.001 / games.length).toFixed(3) + 's per game)\n'
-	);
+		results.sort((a, b) => (a.easiest.difficulty - b.easiest.difficulty));
+		const easiest = results[0];
+		const hardestNumbers = results[results.length - 1];
+
+		results.sort((a, b) => (a.hardest.difficulty - b.hardest.difficulty));
+		const easiestNumbers = results[0];
+		const hardest = results[results.length - 1];
+
+		results.sort((a, b) => (a.averageDifficulty - b.averageDifficulty));
+		const easiestAverage = results[0];
+		const hardestAverage = results[results.length - 1];
+
+		function representGame(inputs, game) {
+			return inputs.join(',') + ' -> ' + game.value;
+		}
+
+		callback(
+			'Total permutations: ' + (results.length + impossible.length) + '\n' +
+			'Impossible numbers:\n' + impossible.map((l) => l.join(',')).join('\n') + '\n' +
+			'Easiest game: ' + representGame(easiest.inputs, easiest.easiest) + '\n' +
+			'Hardest game: ' + representGame(hardest.inputs, hardest.hardest) + '\n' +
+			'Easiest numbers: ' + easiestNumbers.inputs.join(',') + '\n' +
+			'Hardest numbers: ' + hardestNumbers.inputs.join(',') + '\n' +
+			'Typically easiest numbers: ' + easiestAverage.inputs.join(',') + '\n' +
+			'Typically hardest numbers: ' + hardestAverage.inputs.join(',') + '\n' +
+
+			'-- ' + ((tm1 - tm0) * 0.001).toFixed(3) + 's ' +
+			'(' + ((tm1 - tm0) * 0.001 / results.length).toFixed(3) + 's per game)\n'
+		);
+	}
+
+	let inFlight = 0;
+	for (const worker of workers) {
+		++ inFlight;
+		nextBatch(worker);
+	}
 }
 
 window.addEventListener('load', () => {

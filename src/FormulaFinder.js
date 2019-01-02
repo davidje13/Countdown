@@ -25,6 +25,15 @@ class FormulaFinder {
 		this.operators = operators;
 	}
 
+	findFormulas(inputs, target, {all}) {
+		if (all) {
+			return this.findAllFormulas(inputs, target);
+		} else {
+			const solution = this.findAnyFormula(inputs, target);
+			return solution ? [solution] : [];
+		}
+	}
+
 	findAllFormulas(inputs, target) {
 		const operators = this.operators;
 
@@ -117,5 +126,24 @@ class FormulaFinder {
 			allTargets.push({value, difficulty});
 		}
 		return allTargets;
+	}
+
+	analyse(games, {min = 1, max = Number.POSITIVE_INFINITY} = {}) {
+		return games.map((inputs) => {
+			const targets = this.findTargets(inputs, {min, max});
+			targets.sort((a, b) => (a.difficulty - b.difficulty));
+			let sumDifficulty = 0;
+			for (const target of targets) {
+				sumDifficulty += target.difficulty;
+			}
+
+			return {
+				inputs,
+				achievable: targets.length,
+				easiest: targets[0] || null,
+				hardest: targets[targets.length - 1] || null,
+				averageDifficulty: sumDifficulty / targets.length,
+			};
+		});
 	}
 }
