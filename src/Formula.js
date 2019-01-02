@@ -40,18 +40,11 @@ class Formula {
 
 	constructor(actions) {
 		this.actions = actions;
-		this.cachedDifficulty = -1;
-	}
-
-	difficulty() {
-		if (this.cachedDifficulty === -1) {
-			let d = 0;
-			for (const action of this.actions) {
-				d += action.difficulty();
-			}
-			this.cachedDifficulty = d;
+		this.difficulty = 0;
+		for (const action of actions) {
+			this.difficulty += action.difficulty();
 		}
-		return this.cachedDifficulty;
+		this.length = actions.length;
 	}
 
 	_isMinimal(inputs) {
@@ -85,10 +78,6 @@ class Formula {
 		}
 
 		return steps.length === 0;
-	}
-
-	length() {
-		return this.actions.length;
 	}
 
 	toString() {

@@ -53,22 +53,22 @@ function buildUI(defaultInputs, defaultTarget) {
 		let message = '';
 
 		if (solutions.length > 0) {
-			solutions.sort((a, b) => (a.difficulty() - b.difficulty()));
+			solutions.sort((a, b) => (a.difficulty - b.difficulty));
 			const easiest = solutions[0];
 			const hardest = solutions[solutions.length - 1];
 
-			solutions.sort((a, b) => (a.length() - b.length()));
+			solutions.sort((a, b) => (a.length - b.length));
 			const shortest = solutions[0];
 
 			message += easiest.toString();
 			message += '-- calculated in ' + (tm2 - tm1) + 'ms\n\n';
 
-			if (easiest.difficulty() + 500 < hardest.difficulty()) {
+			if (easiest.difficulty + 500 < hardest.difficulty) {
 				message += 'Hardest method:\n' + hardest.toString() + '\n';
 			}
 			if (
-				shortest.length() < easiest.length() &&
-				shortest.length() < hardest.length()
+				shortest.length < easiest.length &&
+				shortest.length < hardest.length
 			) {
 				message += 'Shortest method:\n' + shortest.toString() + '\n';
 			}
