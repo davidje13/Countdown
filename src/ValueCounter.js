@@ -24,7 +24,6 @@ class ValueCounter {
 
 	inc(v) {
 		this.counts.set(v, (this.counts.get(v) || 0) + 1);
-		return this;
 	}
 
 	dec(v) {
@@ -34,16 +33,49 @@ class ValueCounter {
 		} else {
 			this.counts.set(v, c - 1);
 		}
-		return this;
+	}
+
+	set(v, n) {
+		if (n === 0) {
+			this.counts.delete(v);
+		} else {
+			this.counts.set(v, n);
+		}
 	}
 
 	pairings(fn) {
 		for (const v1 of this.counts.keys()) {
 			for (const [v2, n] of this.counts) {
 				if (v1 !== v2 || n >= 2) {
-					fn(v1, v2, this.copy().dec(v1).dec(v2));
+					const remaining = this.copy();
+					remaining.dec(v1);
+					remaining.dec(v2);
+					fn(v1, v2, remaining);
 				}
 			}
+		}
+	}
+
+	pairingsInplace(fn) {
+		// Faster and reduces GC requirements, but must be used carefully
+		const vs = Array.from(this.counts.keys());
+		for (let i1 = 0; i1 < vs.length; ++ i1) {
+			const v1 = vs[i1];
+			const n1 = this.counts.get(v1);
+			if (n1 >= 2) {
+				this.set(v1, n1 - 2);
+				fn(v1, v1, this);
+			}
+			this.set(v1, n1 - 1);
+			for (let i2 = 0; i2 < i1; ++ i2) {
+				const v2 = vs[i2];
+				const n2 = this.counts.get(v2);
+				this.set(v2, n2 - 1);
+				fn(v1, v2, this);
+				fn(v2, v1, this);
+				this.counts.set(v2, n2);
+			}
+			this.counts.set(v1, n1);
 		}
 	}
 

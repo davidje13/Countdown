@@ -2,11 +2,13 @@
 
 function findOptions(states, operators, fn) {
 	states.forEach((valueData, values) => {
-		values.pairings((a, b, remaining) => {
+		values.pairingsInplace((a, b, remaining) => {
 			for (const op of operators) {
 				if (op.supports(a, b)) {
 					const v = op.apply(a, b);
-					fn(remaining.copy().inc(v), valueData, a, b, op, v);
+					remaining.inc(v);
+					fn(remaining, valueData, a, b, op, v);
+					remaining.dec(v);
 				}
 			}
 		});
@@ -38,7 +40,7 @@ class FormulaFinder {
 		const operators = this.operators;
 
 		if (inputs.includes(target)) {
-			return [Formula.fromLastAction(null)];
+			return [new Formula()];
 		}
 
 		const solutions = [];
@@ -48,30 +50,25 @@ class FormulaFinder {
 		for (let n = 0; n < inputs.length - 1; ++ n) {
 			const next = new HashMap();
 			findOptions(current, operators, (vals, prevActs, a, b, op, v) => {
-				const entry = next.setIfAbsent(vals, []);
-				for (const prevAct of prevActs) {
-					entry.push(new Formula.Action(a, b, op, prevAct));
-				}
+				const action = new Formula.Action(a, b, op, prevActs);
+
+				next.setIfAbsent(vals, []).push(action);
+
 				if (v === target) {
-					for (const act of entry.slice(-prevActs.length)) {
-						const formula = Formula.fromLastAction(act);
-						if (formula._isMinimal(inputs)) {
-							solutions.push(formula);
-						}
-					}
+					solutions.push(...Formula.fromLastActionTree(action));
 				}
 			});
 			current = next;
 		}
 
-		return solutions;
+		return solutions.filter((formula) => formula._isMinimal(inputs));
 	}
 
 	findAnyFormula(inputs, target) {
 		const operators = this.operators;
 
 		if (inputs.includes(target)) {
-			return Formula.fromLastAction(null);
+			return new Formula();
 		}
 
 		let current = new HashMap();
@@ -81,10 +78,12 @@ class FormulaFinder {
 			const next = new HashMap();
 			const solutions = [];
 			findOptions(current, operators, (vals, prevAct, a, b, op, v) => {
-				const act = new Formula.Action(a, b, op, prevAct);
-				next.setIfAbsent(vals, act);
+				const action = new Formula.Action(a, b, op, prevAct);
+
+				next.setIfAbsent(vals, action);
+
 				if (v === target) {
-					solutions.push(Formula.fromLastAction(act));
+					solutions.push(Formula.fromLastAction(action));
 				}
 			});
 			current = next;
@@ -113,7 +112,10 @@ class FormulaFinder {
 			const next = new HashMap();
 			findOptions(current, operators, (vals, prevDiff, a, b, op, v) => {
 				const d = prevDiff + op.difficulty(a, b);
-				setMinimum(next, vals, d);
+				next.compute(
+					vals,
+					(old) => ((old === undefined || d < old) ? d : old)
+				);
 				if (v >= min && v <= max) {
 					setMinimum(targets, v, d);
 				}

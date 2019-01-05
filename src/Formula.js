@@ -67,15 +67,38 @@ class FlatAction {
 	}
 }
 
+function buildFormulasRecur(formulas, curAction, actions, difficulty) {
+	if (curAction === null) {
+		const ordered = actions.slice();
+		ordered.reverse();
+		formulas.push(new Formula(ordered, difficulty));
+		return;
+	}
+	difficulty += curAction.difficulty();
+	actions.push(curAction);
+	for (const action of curAction.prev) {
+		buildFormulasRecur(formulas, action, actions, difficulty);
+	}
+	actions.pop();
+}
+
 class Formula {
 	static fromLastAction(lastAction) {
 		const actions = [];
 		let d = 0;
 		for (let action = lastAction; action !== null; action = action.prev) {
-			actions.unshift(action);
+			actions.push(action);
 			d += action.difficulty();
 		}
+		actions.reverse();
 		return new Formula(actions, d);
+	}
+
+	static fromLastActionTree(lastAction) {
+		const formulas = [];
+		const actions = [];
+		buildFormulasRecur(formulas, lastAction, actions, 0);
+		return formulas;
 	}
 
 	static fromJSON({actions, difficulty}) {
@@ -85,7 +108,7 @@ class Formula {
 		);
 	}
 
-	constructor(actions, difficulty) {
+	constructor(actions = [], difficulty = 0) {
 		this.actions = actions;
 		this.difficulty = difficulty;
 		this.length = actions.length;
