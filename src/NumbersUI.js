@@ -190,7 +190,7 @@ class NumbersUI {
 			}
 		}
 
-		this.setOutput(message + '-- calculated in ' + time + 'ms');
+		this.setOutput(message + '\u2014 calculated in ' + time + 'ms');
 	}
 
 	_solve(inputs, target) {
@@ -230,6 +230,12 @@ class NumbersUI {
 			}
 		}
 
-		this.setOutput(message + '-- calculated in ' + time + 'ms');
+		let count = '';
+		if (solutions.length === 1) {
+			count = '1 solution';
+		} else {
+			count = solutions.length + ' solutions';
+		}
+		this.setOutput(message + '\u2014 ' + count + ' calculated in ' + time + 'ms');
 	}
 }
