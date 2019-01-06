@@ -9,131 +9,6 @@ for (let i = 0; i < workerCount; ++ i) {
 const minTarget = 101;
 const maxTarget = 999;
 
-function make(type, attrs = {}) {
-	const o = document.createElement(type);
-	for (const attr in attrs) {
-		o.setAttribute(attr, attrs[attr]);
-	}
-	return o;
-}
-
-function buildUI(defaultInputs, defaultTarget) {
-	const form = make('form', {'class': 'numbers', 'action': '#'});
-
-	const inputSection = make('div', {'class': 'input'});
-	form.appendChild(inputSection);
-
-	const inputFields = [];
-	for (let i = 0; i < defaultInputs.length; ++ i) {
-		const input = make('input', {
-			'class': 'sourceNumber nodecoration',
-			'type': 'number',
-			'min': '1',
-			'max': '100',
-			'value': defaultInputs[i],
-		});
-		inputSection.appendChild(input);
-		inputFields.push(input);
-	}
-
-	const targetField = make('input', {
-		'class': 'targetNumber nodecoration',
-		'type': 'number',
-		'min': minTarget,
-		'max': maxTarget,
-		'value': defaultTarget,
-		'placeholder': '000',
-	});
-	inputSection.appendChild(targetField);
-
-	const go = make('button', {'class': 'calculate', 'title': 'Calculate'});
-	inputSection.appendChild(go);
-
-	const output = make('div', {'class': 'output'});
-	form.appendChild(output);
-
-	function showOutput(targets, targetsTime, solutions, solutionsTime) {
-		let message = '';
-
-		if (solutions.length > 0) {
-			solutions.sort((a, b) => (a.difficulty - b.difficulty));
-			const easiest = solutions[0];
-			const hardest = solutions[solutions.length - 1];
-
-			solutions.sort((a, b) => (a.length - b.length));
-			const shortest = solutions[0];
-
-			message += easiest.toString();
-			message += '-- calculated in ' + solutionsTime + 'ms\n\n';
-
-			if (easiest.difficulty + 500 < hardest.difficulty) {
-				message += 'Hardest method:\n' + hardest.toString() + '\n';
-			}
-			if (
-				shortest.length < easiest.length &&
-				shortest.length < hardest.length
-			) {
-				message += 'Shortest method:\n' + shortest.toString() + '\n';
-			}
-		} else {
-			message += 'No solution!\n\n';
-		}
-
-		targets.sort((a, b) => (b.difficulty - a.difficulty));
-		message += 'Other possible targets (hardest first):\n';
-		for (let i = 0; i < Math.min(targets.length, 20); ++ i) {
-			message += targets[i].value + '\n';
-		}
-		message += '-- calculated in ' + targetsTime + 'ms\n\n';
-
-		const impossibleCount = maxTarget - minTarget + 1 - targets.length;
-		if (impossibleCount > 0) {
-			message += 'Impossible targets (' + impossibleCount + '):\n';
-			const allTargets = new Set();
-			targets.forEach((i) => allTargets.add(i.value));
-			for (let v = minTarget; v <= maxTarget; ++ v) {
-				if (!allTargets.has(v)) {
-					message += v + '\n';
-				}
-			}
-		}
-
-		output.textContent = message;
-	}
-
-	function beginCalculate() {
-		output.textContent = 'Calculating\u2026';
-		const inputs = [];
-		for (const inputField of inputFields) {
-			inputs.push(inputField.value|0);
-		}
-		const target = targetField.value|0;
-
-		Promise.all([
-			workers[0].findTargets(inputs, {
-				min: minTarget,
-				max: maxTarget,
-			}),
-			workers[1].findAllFormulas(inputs, target),
-		]).then(([targetData, solutionsData]) => {
-			showOutput(
-				targetData.targets,
-				targetData.time,
-				solutionsData.solutions,
-				solutionsData.time
-			);
-		});
-	}
-
-	form.addEventListener('submit', (e) => {
-		e.preventDefault();
-		beginCalculate();
-	});
-	beginCalculate();
-
-	return form;
-}
-
 function buildAnalyser(selection, inputCount) {
 	const form = make('form');
 	form.setAttribute('action', '#');
@@ -272,8 +147,17 @@ function analyseGames(selection, inputCount, callback) {
 	}
 }
 
+const ui = new NumbersUI({
+	inputCount: 6,
+	minTarget: 101,
+	maxTarget: 999,
+	targetWorker: workers[0],
+	solutionWorker: workers[1],
+});
+
 window.addEventListener('load', () => {
 	document.body.appendChild(buildAnalyser([...selectionBig, ...selectionSmall], 6));
-	document.body.appendChild(buildUI([100, 75, 50, 25, 6, 3], 952));
+	document.body.appendChild(ui.dom());
+	// 100, 75, 50, 25, 6, 3 -> 952
 	// 100, 75, 50, 25, 9, 8 -> 490
 });
