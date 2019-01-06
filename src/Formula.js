@@ -125,12 +125,12 @@ class Formula {
 			result: action.result(),
 		}));
 		const required = [steps[steps.length - 1].result];
-		const inputValues = ValueCounter.of(inputs);
+		const remainingInputs = inputs.slice();
 
 		while (required.length > 0) {
 			const target = required.pop();
-			if (inputValues.has(target)) {
-				inputValues.dec(target);
+			if (remainingInputs.includes(target)) {
+				remainingInputs.splice(remainingInputs.indexOf(target), 1);
 				continue;
 			}
 			for (let i = 0; i < steps.length; ++ i) {
