@@ -35,8 +35,10 @@ class NumbersUI {
 			const input = make('input', {
 				'class': 'sourceNumber nodecoration',
 				'type': 'number',
+				'required': 'required',
 				'min': '1',
 				'max': '100',
+				'placeholder': ' ',
 			});
 			inputSection.appendChild(input);
 			this.inputFields.push(input);
@@ -59,24 +61,7 @@ class NumbersUI {
 
 		this.form.addEventListener('submit', (e) => {
 			e.preventDefault();
-			const inputs = [];
-			for (const inputField of this.inputFields) {
-				const val = readNumeric(inputField);
-				if (!val) {
-					inputField.focus();
-					return;
-				}
-				inputs.push(val);
-			}
-			if (this.busy) {
-				return;
-			}
-			this._setBusy(true);
-			if (this.targetField.value === '') {
-				this._pickTarget(inputs);
-			} else {
-				this._calculate(inputs);
-			}
+			this.calculate();
 		});
 	}
 
@@ -110,6 +95,21 @@ class NumbersUI {
 		this.output.textContent = msg;
 	}
 
+	calculate() {
+		if (this.busy) {
+			return false;
+		}
+		this._setBusy(true);
+		const inputs = this.inputFields.map(readNumeric);
+		if (this.targetField.value === '') {
+			this._pickTarget(inputs);
+		} else {
+			const target = readNumeric(this.targetField);
+			this._solve(inputs, target);
+		}
+		return true;
+	}
+
 	_pickTarget(inputs) {
 		this.setOutput('');
 		clearInterval(this.flicker);
@@ -133,10 +133,8 @@ class NumbersUI {
 		});
 	}
 
-	_calculate(inputs) {
+	_solve(inputs, target) {
 		this.setOutput('Calculating\u2026');
-
-		const target = readNumeric(this.targetField);
 
 		Promise.all([
 			this.targetWorker.findTargets(inputs, {

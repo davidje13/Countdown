@@ -16,7 +16,7 @@ input.nodecoration::-webkit-inner-spin-button {
 }
 
 .numbers .input {
-	background: #44AAEE;
+	background: linear-gradient(to bottom right,rgba(255,255,255,0.2),rgba(255,255,255,0.0)) #44AAEE;
 	padding: 5em 0.5em 0.5em;
 	position: relative;
 	margin: 0 0 0.25em;
@@ -44,6 +44,10 @@ input.nodecoration::-webkit-inner-spin-button {
 		inset 0 0.15em 0 0.08em #44AAEE,
 		0 -1px 1px rgba(0, 0, 0, 0.5),
 		0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.numbers .sourceNumber:placeholder-shown {
+	background: rgba(0, 0, 0, 0.02);
 }
 
 .numbers .targetNumber {
