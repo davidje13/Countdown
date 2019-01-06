@@ -1,3 +1,11 @@
+input.nodecoration {
+	-moz-appearance: textfield;
+}
+
+input.nodecoration::-webkit-inner-spin-button {
+	display: none;
+}
+
 .numbers {
 	display: inline-block;
 	width: 30em;

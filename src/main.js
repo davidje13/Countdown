@@ -26,7 +26,7 @@ function buildUI(defaultInputs, defaultTarget) {
 	const inputFields = [];
 	for (let i = 0; i < defaultInputs.length; ++ i) {
 		const input = make('input', {
-			'class': 'sourceNumber',
+			'class': 'sourceNumber nodecoration',
 			'type': 'number',
 			'min': '1',
 			'max': '100',
@@ -37,7 +37,8 @@ function buildUI(defaultInputs, defaultTarget) {
 	}
 
 	const targetField = make('input', {
-		'class': 'targetNumber',
+		'class': 'targetNumber nodecoration',
+		'type': 'number',
 		'min': minTarget,
 		'max': maxTarget,
 		'value': defaultTarget,
