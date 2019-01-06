@@ -181,7 +181,7 @@ class NumbersUI {
 			if (targets.length < allTargets) {
 				message += 'Impossible targets:\n';
 				const allTargets = new Set(targetValues);
-				for (let v = minTarget; v <= maxTarget; ++ v) {
+				for (let v = this.minTarget; v <= this.maxTarget; ++ v) {
 					if (!allTargets.has(v)) {
 						message += v + ', ';
 					}
