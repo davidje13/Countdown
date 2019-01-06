@@ -9,39 +9,46 @@ for (let i = 0; i < workerCount; ++ i) {
 const minTarget = 101;
 const maxTarget = 999;
 
+function make(type, attrs = {}) {
+	const o = document.createElement(type);
+	for (const attr in attrs) {
+		o.setAttribute(attr, attrs[attr]);
+	}
+	return o;
+}
+
 function buildUI(defaultInputs, defaultTarget) {
-	const form = document.createElement('form');
-	form.setAttribute('action', '#');
+	const form = make('form', {'class': 'numbers', 'action': '#'});
+
+	const inputSection = make('div', {'class': 'input'});
+	form.appendChild(inputSection);
 
 	const inputFields = [];
-	form.appendChild(document.createTextNode('Inputs: '));
 	for (let i = 0; i < defaultInputs.length; ++ i) {
-		const input = document.createElement('input');
-		input.setAttribute('type', 'number');
-		input.setAttribute('min', '1');
-		input.setAttribute('max', '100');
-		input.setAttribute('size', '3');
-		input.setAttribute('value', defaultInputs[i]);
-		form.appendChild(input);
+		const input = make('input', {
+			'class': 'sourceNumber',
+			'type': 'number',
+			'min': '1',
+			'max': '100',
+			'value': defaultInputs[i],
+		});
+		inputSection.appendChild(input);
 		inputFields.push(input);
 	}
 
-	form.appendChild(document.createElement('br'));
-	form.appendChild(document.createTextNode('Target: '));
-	const targetField = document.createElement('input');
-	targetField.setAttribute('type', 'number');
-	targetField.setAttribute('min', minTarget);
-	targetField.setAttribute('max', maxTarget);
-	targetField.setAttribute('size', '6');
-	targetField.setAttribute('value', defaultTarget);
-	form.appendChild(targetField);
+	const targetField = make('input', {
+		'class': 'targetNumber',
+		'min': minTarget,
+		'max': maxTarget,
+		'value': defaultTarget,
+		'placeholder': '000',
+	});
+	inputSection.appendChild(targetField);
 
-	form.appendChild(document.createTextNode(' '));
-	const go = document.createElement('button');
-	go.appendChild(document.createTextNode('go'));
-	form.appendChild(go);
+	const go = make('button', {'class': 'calculate', 'title': 'Calculate'});
+	inputSection.appendChild(go);
 
-	const output = document.createElement('pre');
+	const output = make('div', {'class': 'output'});
 	form.appendChild(output);
 
 	function showOutput(targets, targetsTime, solutions, solutionsTime) {
@@ -127,14 +134,14 @@ function buildUI(defaultInputs, defaultTarget) {
 }
 
 function buildAnalyser(selection, inputCount) {
-	const form = document.createElement('form');
+	const form = make('form');
 	form.setAttribute('action', '#');
 
-	const go = document.createElement('button');
+	const go = make('button');
 	go.appendChild(document.createTextNode('Analyse all possible games (SLOW!)'));
 	form.appendChild(go);
 
-	const output = document.createElement('pre');
+	const output = make('pre');
 	form.appendChild(output);
 
 	function calculate() {
