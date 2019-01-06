@@ -87,16 +87,17 @@ input.nodecoration::-webkit-inner-spin-button {
 }
 
 .numbers .output {
-	font: 1em chalkboard, 'comic sans ms', sans-serif;
-	white-space: pre;
-	height: 15em;
+	font: 1.2em chalkboard, 'comic sans ms', sans-serif;
+	line-height: 1.5em;
+	white-space: pre-wrap;
+	height: 12em;
 	overflow: auto;
 	border: 0.2em solid #AABBBB;
 	margin: 0;
-	padding: 1em;
-	background: center center / 1.5em 1.5em #FFFFFF;
+	padding: 0.75em;
+	background: center center / 0.75em 0.75em #FFFFFF;
 	background-image:
-		linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, rgba(0, 0, 0, 0) 1px),
-		linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, rgba(0, 0, 0, 0) 1px);
+		linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, rgba(0, 0, 0, 0) 1px),
+		linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, rgba(0, 0, 0, 0) 1px);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }

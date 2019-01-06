@@ -8,6 +8,16 @@ function rnd(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function pickRandom(list) {
+	return list[rnd(0, list.length)];
+}
+
+function waitUntil(time) {
+	return (data) => new Promise((resolve) => {
+		setTimeout(() => resolve(data), time - Date.now());
+	});
+}
+
 class NumbersUI {
 	constructor({
 		inputCount,
@@ -86,6 +96,13 @@ class NumbersUI {
 		this.targetField.value = target || '';
 	}
 
+	_showFlickeringTarget() {
+		clearInterval(this.flicker);
+		this.flicker = setInterval(() => {
+			this.targetField.value = rnd(this.minTarget, this.maxTarget + 1);
+		}, this.flickerInterval);
+	}
+
 	_setBusy(busy) {
 		this.go.disabled = busy;
 		this.busy = busy;
@@ -99,7 +116,6 @@ class NumbersUI {
 		if (this.busy) {
 			return false;
 		}
-		this._setBusy(true);
 		const inputs = this.inputFields.map(readNumeric);
 		if (this.targetField.value === '') {
 			this._pickTarget(inputs);
@@ -112,50 +128,88 @@ class NumbersUI {
 
 	_pickTarget(inputs) {
 		this.setOutput('');
-		clearInterval(this.flicker);
-		this.flicker = setInterval(() => {
-			this.targetField.value = rnd(this.minTarget, this.maxTarget + 1);
-		}, this.flickerInterval);
+		this._showFlickeringTarget();
 
-		const beginTime = Date.now();
+		const options = {min: this.minTarget, max: this.maxTarget};
 
-		this.targetWorker.findTargets(inputs, {
-			min: this.minTarget,
-			max: this.maxTarget,
-		}).then(({targets}) => {
-			const chosen = targets.length ? targets[rnd(0, targets.length)].value : null;
-
-			setTimeout(() => {
-				this.setTarget(chosen);
-				this.setOutput('');
+		this._setBusy(true);
+		this.targetWorker.findTargets(inputs, options)
+			.then(waitUntil(Date.now() + this.minFlickerDuration))
+			.then(({targets, time}) => {
+				const target = targets.length ? pickRandom(targets).value : null;
+				this.setTarget(target);
+				this._showTargetInfo(targets, target, time);
 				this._setBusy(false);
-			}, Math.max(beginTime + this.minFlickerDuration - Date.now(), 0));
-		});
+			});
+	}
+
+	_showTargetInfo(targets, target, time) {
+		const allTargets = this.maxTarget + 1 - this.minTarget;
+
+		let message = (
+			'Possible to solve ' + targets.length +
+			' of ' + allTargets + ' targets\n\n'
+		);
+
+		targets.sort((a, b) => (a.difficulty - b.difficulty));
+		const targetValues = targets.map((t) => t.value);
+
+		if (!targets.length) {
+			message = 'No solvable targets!\n\n';
+		} else if (targets.length === 1) {
+			message = (
+				'One solvable target:\n\n' +
+				targetValues[0] + '\n\n'
+			);
+		} else if (targets.length <= 20) {
+			message += (
+				'All possible targets (easiest to hardest):\n\n' +
+				targetValues.join(', ') + '\n\n'
+			);
+		} else {
+			const sample = Math.min(Math.floor(targets.length / 2), 20);
+			message += (
+				'Easiest targets:\n' +
+				targetValues.slice(0, sample).join(', ') + '\n\n'
+			);
+			targetValues.reverse();
+			message += (
+				'Hardest targets:\n' +
+				targetValues.slice(0, sample).join(', ') + '\n\n'
+			);
+
+			if (targets.length < allTargets) {
+				message += 'Impossible targets:\n';
+				const allTargets = new Set(targetValues);
+				for (let v = minTarget; v <= maxTarget; ++ v) {
+					if (!allTargets.has(v)) {
+						message += v + ', ';
+					}
+				}
+				message = message.substr(0, message.length - 2) + '\n\n';
+			}
+		}
+
+		this.setOutput(message + '-- calculated in ' + time + 'ms');
 	}
 
 	_solve(inputs, target) {
 		this.setOutput('Calculating\u2026');
 
-		Promise.all([
-			this.targetWorker.findTargets(inputs, {
-				min: this.minTarget,
-				max: this.maxTarget,
-			}),
-			this.solutionWorker.findAllFormulas(inputs, target),
-		]).then(([targetData, solutionsData]) => {
-			this._displayResults(
-				targetData.targets,
-				targetData.time,
-				solutionsData.solutions,
-				solutionsData.time
-			);
-		});
+		this._setBusy(true);
+		this.solutionWorker.findAllFormulas(inputs, target)
+			.then(({solutions, time}) => {
+				this._showSolution(solutions, time);
+				this._setBusy(false);
+			});
 	}
 
-	_displayResults(targets, targetsTime, solutions, solutionsTime) {
+	_showSolution(solutions, time) {
 		let message = '';
 
-		if (solutions.length > 0) {
+		if (!solutions.length) {
+			message += 'No solution!\n\n';
+		} else {
 			solutions.sort((a, b) => (a.difficulty - b.difficulty));
 			const easiest = solutions[0];
 			const hardest = solutions[solutions.length - 1];
@@ -163,8 +217,7 @@ class NumbersUI {
 			solutions.sort((a, b) => (a.length - b.length));
 			const shortest = solutions[0];
 
-			message += easiest.toString();
-			message += '-- calculated in ' + solutionsTime + 'ms\n\n';
+			message += easiest.toString() + '\n';
 
 			if (easiest.difficulty + 500 < hardest.difficulty) {
 				message += 'Hardest method:\n' + hardest.toString() + '\n';
@@ -175,30 +228,8 @@ class NumbersUI {
 			) {
 				message += 'Shortest method:\n' + shortest.toString() + '\n';
 			}
-		} else {
-			message += 'No solution!\n\n';
 		}
 
-		targets.sort((a, b) => (b.difficulty - a.difficulty));
-		message += 'Other possible targets (hardest first):\n';
-		for (let i = 0; i < Math.min(targets.length, 20); ++ i) {
-			message += targets[i].value + '\n';
-		}
-		message += '-- calculated in ' + targetsTime + 'ms\n\n';
-
-		const impossibleCount = maxTarget - minTarget + 1 - targets.length;
-		if (impossibleCount > 0) {
-			message += 'Impossible targets (' + impossibleCount + '):\n';
-			const allTargets = new Set();
-			targets.forEach((i) => allTargets.add(i.value));
-			for (let v = minTarget; v <= maxTarget; ++ v) {
-				if (!allTargets.has(v)) {
-					message += v + '\n';
-				}
-			}
-		}
-
-		this.setOutput(message);
-		this._setBusy(false);
+		this.setOutput(message + '-- calculated in ' + time + 'ms');
 	}
 }

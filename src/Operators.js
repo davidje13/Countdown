@@ -56,19 +56,19 @@ const Operators = {
 		difficulty: (a, b) => Math.min(aComplexity(a), aComplexity(b)),
 	},
 	SUBTRACT_POSITIVE: {
-		name: '-',
+		name: '\u2212',
 		supports: (a, b) => (a > b),
 		apply: (a, b) => (a - b),
 		difficulty: (a, b) => (Math.min(aComplexity(a), aComplexity(b)) * 10),
 	},
 	MULTIPLY: {
-		name: '*',
+		name: '\u00D7',
 		supports: (a, b) => (a >= b),
 		apply: (a, b) => (a * b),
 		difficulty: (a, b) => ((mComplexity(a) + mComplexity(b)) * 30),
 	},
 	DIVIDE_WHOLE: {
-		name: '/',
+		name: '\u00F7',
 		supports: (a, b) => (b !== 0 && (a % b) === 0),
 		apply: (a, b) => ((a / b)|0),
 		difficulty: (a, b) => {
