@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_SCRIPT = './src/worker.js';
+const WORKER_SCRIPT = './src/solvers/numbers/worker.js';
 
 class AsyncFormulaFinder {
 	constructor(operators) {

@@ -1,5 +1,7 @@
 'use strict';
 
+import {make} from './dom.js';
+
 function readNumeric(input) {
 	return input.value|0;
 }
@@ -18,7 +20,7 @@ function waitUntil(time) {
 	});
 }
 
-class NumbersUI {
+export default class NumbersUI {
 	constructor({
 		inputCount,
 		minTarget,
@@ -238,4 +240,4 @@ class NumbersUI {
 		}
 		this.setOutput(message + '\u2014 ' + count + ' calculated in ' + time + 'ms');
 	}
-}
+};

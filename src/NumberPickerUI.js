@@ -1,5 +1,7 @@
 'use strict';
 
+import {make} from './dom.js';
+
 function representGame(inputs, game) {
 	return inputs.join(',') + ' -> ' + game.value;
 }
@@ -26,7 +28,7 @@ function choices(list, count, fn) {
 	_choices(vs, count, 0, 0, temp, fn);
 }
 
-class NumberPickerUI extends EventTarget {
+export default class NumberPickerUI extends EventTarget {
 	constructor({
 		inputCount,
 		minTarget,
@@ -148,4 +150,4 @@ class NumberPickerUI extends EventTarget {
 			'(' + (time * 0.001 / results.length).toFixed(3) + 's per game)\n'
 		);
 	}
-}
+};

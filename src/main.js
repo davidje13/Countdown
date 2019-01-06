@@ -1,5 +1,8 @@
 'use strict';
 
+import NumbersUI from './NumbersUI.js';
+import NumberPickerUI from './NumberPickerUI.js';
+
 window.addEventListener('load', () => {
 	const workerCount = 4;
 	const workers = [];
