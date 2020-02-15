@@ -1,5 +1,7 @@
 'use strict';
 
+const VOID_ACTION = { a: 0, b: 0, op: { name: '', chain: '' } };
+
 class Action {
 	constructor(a, b, op, prev = null) {
 		this.a = a;
@@ -82,6 +84,69 @@ function buildFormulasRecur(formulas, curAction, actions, difficulty) {
 	actions.pop();
 }
 
+function hasUnnecessarySteps(actions, inputs) {
+	const steps = actions.map((action) => ({
+		a: action.a,
+		b: action.b,
+		result: action.result(),
+	}));
+	const required = [steps[steps.length - 1].result];
+	const remainingInputs = inputs.slice();
+
+	while (required.length > 0) {
+		const target = required.pop();
+		if (remainingInputs.includes(target)) {
+			remainingInputs.splice(remainingInputs.indexOf(target), 1);
+			continue;
+		}
+		for (let i = 0; i < steps.length; ++ i) {
+			const step = steps[i];
+			if (step.result === target) {
+				required.push(step.a);
+				required.push(step.b);
+				steps.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	return steps.length > 0;
+}
+
+function findCanonicalSources(action, values) {
+	const optionsA = values.filter(({ value }) => (value === action.a));
+	const optionsB = values.filter(({ value }) => (value === action.b));
+	for (const a of optionsA) {
+		for (const b of optionsB) {
+			if (a !== b && action.op.allowsCanonicalSources(a, b)) {
+				return { a, b };
+			}
+		}
+	}
+	return null;
+}
+
+function hasNoncanonicalOrdering(actions, inputs) {
+	const values = inputs.map((value) => ({ source: VOID_ACTION, value }));
+
+	const remainingActions = actions.slice();
+	for (let n = remainingActions.length; (n --) > 0; ) {
+		for (let i = 0; i < remainingActions.length; ++ i) {
+			const action = remainingActions[i];
+			const opt = findCanonicalSources(action, values);
+			if (opt) {
+				values.splice(values.indexOf(opt.a), 1);
+				values.splice(values.indexOf(opt.b), 1);
+				values.push({ source: action, value: action.result() });
+				remainingActions.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	return remainingActions.length > 0;
+}
+
 class Formula {
 	static fromLastAction(lastAction) {
 		const actions = [];
@@ -119,32 +184,15 @@ class Formula {
 			return true;
 		}
 
-		const steps = this.actions.map((action) => ({
-			a: action.a,
-			b: action.b,
-			result: action.result(),
-		}));
-		const required = [steps[steps.length - 1].result];
-		const remainingInputs = inputs.slice();
-
-		while (required.length > 0) {
-			const target = required.pop();
-			if (remainingInputs.includes(target)) {
-				remainingInputs.splice(remainingInputs.indexOf(target), 1);
-				continue;
-			}
-			for (let i = 0; i < steps.length; ++ i) {
-				const step = steps[i];
-				if (step.result === target) {
-					required.push(step.a);
-					required.push(step.b);
-					steps.splice(i, 1);
-					break;
-				}
-			}
+		if (hasUnnecessarySteps(this.actions, inputs)) {
+			return false;
 		}
 
-		return steps.length === 0;
+		if (hasNoncanonicalOrdering(this.actions, inputs)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	toJSON() {

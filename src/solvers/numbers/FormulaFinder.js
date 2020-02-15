@@ -61,7 +61,15 @@ class FormulaFinder {
 			current = next;
 		}
 
-		return solutions.filter((formula) => formula._isMinimal(inputs));
+		if (solutions.length === 0) {
+			return [];
+		}
+		const filtered = solutions.filter((formula) => formula._isMinimal(inputs));
+		if (filtered.length === 0) {
+			// should never happen, but throw if it does to identify bugs
+			throw new Error('Internal error: filtering removed all solutions');
+		}
+		return filtered;
 	}
 
 	findAnyFormula(inputs, target) {
