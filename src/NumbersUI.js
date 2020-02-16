@@ -45,7 +45,7 @@ export default class NumbersUI {
 
 		for (let i = 0; i < inputCount; ++ i) {
 			const input = make('input', {
-				'class': 'sourceNumber nodecoration',
+				'class': 'tile nodecoration',
 				'type': 'number',
 				'required': 'required',
 				'min': '1',

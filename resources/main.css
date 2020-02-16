@@ -6,9 +6,9 @@ input.nodecoration::-webkit-inner-spin-button {
 	display: none;
 }
 
-.numbers {
+
+.letters, .numbers {
 	display: inline-block;
-	width: 30em;
 	background: #5566BB;
 	margin: 20px;
 	border: 0.5em solid #000000;
@@ -16,16 +16,29 @@ input.nodecoration::-webkit-inner-spin-button {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-.numbers .input {
+.letters {
+	float: right;
+}
+
+.numbers {
+	float: left;
+	width: 30em;
+}
+
+.numbers .input, .letters .frame {
 	background: linear-gradient(to bottom right,rgba(255,255,255,0.2),rgba(255,255,255,0.0)) #44AAEE;
-	padding: 5em 0.5em 0.5em;
+	padding: 0.5em;
 	position: relative;
 	margin: 0 0 0.25em;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 	text-align: center;
 }
 
-.numbers .sourceNumber, .numbers .targetNumber {
+.numbers .input {
+	padding-top: 5em;
+}
+
+.tile, .targetNumber {
 	text-align: center;
 	box-sizing: border-box;
 	padding: 0.1em 0 0;
@@ -34,12 +47,13 @@ input.nodecoration::-webkit-inner-spin-button {
 	color: #F8FFFF;
 }
 
-.numbers .sourceNumber {
+.tile {
 	font: 1.6em 'helvetica narrow', 'arial narrow', sans-serif;
 	width: 2.5em;
 	height: 2.5em;
 	margin: 0 0.1em;
 	border-radius: 2px;
+	text-transform: uppercase;
 	box-shadow:
 		inset 0 0.15em 1px rgba(0, 0, 0, 0.8),
 		inset 0 0.15em 0 0.08em #44AAEE,
@@ -48,7 +62,14 @@ input.nodecoration::-webkit-inner-spin-button {
 		0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
-.numbers .sourceNumber:placeholder-shown {
+.letters .tile {
+	font: bolder 1.9em 'helvetica narrow', 'arial narrow', sans-serif;
+	width: 1.8em;
+	height: 1.8em;
+	margin: 0 0.05em;
+}
+
+.tile:placeholder-shown {
 	background: rgba(0, 0, 0, 0.02);
 	box-shadow:
 		inset 0 0.15em 1px rgba(0, 0, 0, 0.8),
@@ -105,4 +126,76 @@ input.nodecoration::-webkit-inner-spin-button {
 		linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, rgba(0, 0, 0, 0) 1px),
 		linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, rgba(0, 0, 0, 0) 1px);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.letters .vowel, .letters .consonant {
+	font: bolder 1.4em 'helvetica narrow', 'arial narrow', sans-serif;
+	display: inline-block;
+	border: 4px solid #BBBBBB;
+	margin: 0 0.5em;
+	padding: 0;
+	background: #AAAAAA;
+	box-shadow:
+		inset 3px 20px 1px #444444,
+		0 1px 2px rgba(0, 0, 0, 0.5);
+	overflow: hidden;
+	position: relative;
+	cursor: pointer;
+}
+
+.letters .vowel:before, .letters .consonant:before {
+	border: 0 solid #BBBBBB;
+	border-width: 4px 2px;
+	padding: 0.5em 0.7em;
+	display: inline-block;
+	background: #3344AA;
+	color: #F8FFFF;
+	margin: 1px 0 0;
+	box-shadow:
+		inset 1px 2px 5px rgba(0, 0, 0, 0.2),
+		3px 0 1px #444444;
+}
+
+.letters .vowel:before {
+	content: "VOWEL";
+	margin-right: 4em;
+}
+
+.letters .consonant:before {
+	content: "CONSONANT";
+	margin-left: 4em;
+}
+
+.letters .vowel:after, .letters .consonant:after {
+	content: "";
+	position: absolute;
+	display: block;
+	width: 2.3em;
+	height: 1.2em;
+	background: #CCCCCC;
+	border-radius: 1px;
+	box-shadow:
+		1px 2px 1px rgba(0, 0, 0, 0.4),
+		2px 4px 2px rgba(0, 0, 0, 0.4);
+	bottom: 0;
+}
+
+.letters .vowel:after {
+	right: 1.6em;
+}
+
+.letters .consonant:after {
+	left: 2px;
+}
+
+.letters .output {
+	margin: 0.3em 0 1em;
+}
+
+.letters .output-all {
+	margin-top: 0.5em;
+	text-align: left;
+	white-space: pre-wrap;
+	font-family: monospace;
+	color: #FFFFFF;
 }

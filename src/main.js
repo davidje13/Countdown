@@ -2,28 +2,29 @@
 
 import NumbersUI from './NumbersUI.js';
 import NumberPickerUI from './NumberPickerUI.js';
+import LettersUI from './LettersUI.js';
 
-const workerCount = 4;
-const workers = [];
-for (let i = 0; i < workerCount; ++ i) {
-	workers.push(new AsyncFormulaFinder(COUNTDOWN_RULES));
+const numberWorkerCount = 4;
+const numberWorkers = [];
+for (let i = 0; i < numberWorkerCount; ++ i) {
+	numberWorkers.push(new AsyncFormulaFinder(COUNTDOWN_RULES));
 }
 
-const options = {
+const numberOptions = {
 	inputCount: 6,
 	minTarget: 101,
 	maxTarget: 999,
 };
 
-const ui = new NumbersUI({
-	...options,
-	targetWorker: workers[0],
-	solutionWorker: workers[1],
+const numbersUI = new NumbersUI({
+	...numberOptions,
+	targetWorker: numberWorkers[0],
+	solutionWorker: numberWorkers[1],
 });
 
 const numberPicker = new NumberPickerUI({
-	...options,
-	analysisWorkers: workers,
+	...numberOptions,
+	analysisWorkers: numberWorkers,
 	selectionBig: [100, 75, 50, 25],
 	selectionSmall: [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9],
 	presets: [
@@ -36,10 +37,18 @@ const numberPicker = new NumberPickerUI({
 });
 
 numberPicker.addEventListener('choice', (e) => {
-	ui.set(e.inputs);
+	numbersUI.set(e.inputs);
 });
 
-document.body.appendChild(ui.dom());
+const letterWorker = new AsyncWordFinder();
+const lettersUI = new LettersUI({
+	worker: letterWorker,
+	letterCount: 9,
+});
+
+document.body.appendChild(numbersUI.dom());
 document.body.appendChild(numberPicker.dom());
+document.body.appendChild(lettersUI.dom());
+
 // 100, 75, 50, 25, 6, 3 -> 952
 // 100, 75, 50, 25, 9, 8 -> 490

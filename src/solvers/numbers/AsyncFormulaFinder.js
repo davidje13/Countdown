@@ -1,6 +1,6 @@
 'use strict';
 
-const WORKER_SCRIPT = './src/solvers/numbers/worker.js';
+const NUMBERS_WORKER_SCRIPT = './src/solvers/numbers/worker.js';
 
 class AsyncFormulaFinder {
 	constructor(operators) {
@@ -14,7 +14,7 @@ class AsyncFormulaFinder {
 
 	_post(message) {
 		if (this.worker === null) {
-			this.worker = new Worker(WORKER_SCRIPT);
+			this.worker = new Worker(NUMBERS_WORKER_SCRIPT);
 			this.worker.addEventListener('message', this._handleResponse);
 		}
 		return new Promise((resolve, reject) => {
