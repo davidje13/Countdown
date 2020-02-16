@@ -131,7 +131,7 @@ export default class LettersUI {
 				count = solutions.length + ' solutions';
 			}
 			const topWords = solutions.slice(0, 50);
-			this.setOutputLetters(topWords[0]);
+			this.setOutputLetters(topWords[0] || '');
 			this.setOutputMessage(`${topWords.join('\n')}\n\n${count} calculated in ${time}ms (${initTime}ms to warm up)`);
 		});
 	}
