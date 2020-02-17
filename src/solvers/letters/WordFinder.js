@@ -101,4 +101,24 @@ class WordFinder {
 		r.sort((a, b) => (b.length - a.length));
 		return r;
 	}
+
+	calculateExpected(options) {
+		let t = 0;
+		let s = 0;
+		let longest = 0;
+		let shortest = Number.POSITIVE_INFINITY;
+		for (const { p, letters } of options) {
+			const found = this.findWords(letters);
+			const length = (found.length > 0) ? found[0].length : 0;
+			longest = Math.max(longest, length);
+			shortest = Math.min(shortest, length);
+			t += p;
+			s += length * p;
+		}
+		return {
+			weighted: s / t,
+			longest,
+			shortest,
+		};
+	}
 }

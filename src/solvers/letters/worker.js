@@ -20,6 +20,9 @@ self.addEventListener('message', ({data}) => {
 	case 'SOLVE':
 		response.solutions = finder.findWords(data.letters);
 		break;
+	case 'CALCULATE':
+		Object.assign(response, finder.calculateExpected(data.options));
+		break;
 	}
 
 	const tm1 = Date.now();

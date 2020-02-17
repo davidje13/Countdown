@@ -156,6 +156,11 @@ input.nodecoration::-webkit-inner-spin-button {
 		3px 0 1px #444444;
 }
 
+.letters .highlight:before {
+	text-shadow: 0 0 12px #FFFFFF;
+	background: #5566BB;
+}
+
 .letters .vowel:before {
 	content: "VOWEL";
 	margin-right: 4em;

@@ -4,16 +4,77 @@ import {make} from './dom.js';
 
 const LETTER_REGEX = /^[a-z]$/;
 
-function rnd(min, max) {
-	return Math.floor(Math.random() * (max - min)) + min;
-}
-
 function pickRandom(list) {
-	return list[rnd(0, list.length)];
+	let t = 0;
+	for (const { p } of list) {
+		t += p;
+	}
+	const r = Math.random() * t;
+	t = 0;
+	for (const { c, p } of list) {
+		t += p;
+		if (t > r) {
+			return c;
+		}
+	}
+	// rounding errors could cause fall-through, so just return the last element
+	return list[list.length - 1].c;
 }
 
-const VOWELS = 'aeiou';
-const CONSONANTS = 'bcdfghjklmnpqrstvwxyz';
+const VOWELS = [
+	{ c: 'a', p: 15 },
+	{ c: 'e', p: 21 },
+	{ c: 'i', p: 13 },
+	{ c: 'o', p: 13 },
+	{ c: 'u', p: 5 },
+];
+const CONSONANTS = [
+	{ c: 'b', p: 2 },
+	{ c: 'c', p: 3 },
+	{ c: 'd', p: 6 },
+	{ c: 'f', p: 2 },
+	{ c: 'g', p: 3 },
+	{ c: 'h', p: 2 },
+	{ c: 'j', p: 1 },
+	{ c: 'k', p: 1 },
+	{ c: 'l', p: 5 },
+	{ c: 'm', p: 4 },
+	{ c: 'n', p: 8 },
+	{ c: 'p', p: 4 },
+	{ c: 'q', p: 1 },
+	{ c: 'r', p: 9 },
+	{ c: 's', p: 9 },
+	{ c: 't', p: 9 },
+	{ c: 'v', p: 1 },
+	{ c: 'w', p: 1 },
+	{ c: 'x', p: 1 },
+	{ c: 'y', p: 1 },
+	{ c: 'z', p: 1 },
+];
+
+function count(word, c) {
+	let n = 0;
+	for (const w of word) {
+		if (w === c) {
+			++ n;
+		}
+	}
+	return n;
+}
+
+function optionsAfter(letters, options) {
+	return options.map(({ c, p }) => {
+		return { c, p: Math.max(0, p - count(letters, c)) };
+	});
+}
+
+function addOptions(base, options) {
+	const r = [];
+	for (const { c, p } of options) {
+		r.push({ letters: base + c, p });
+	}
+	return r;
+}
 
 export default class LettersUI {
 	constructor({
@@ -60,20 +121,20 @@ export default class LettersUI {
 
 		this.output = make('div', {'class': 'output-all'});
 
-		const vowel = make('button', { 'class': 'vowel', 'type': 'button' });
-		const consonant = make('button', { 'class': 'consonant', 'type': 'button' });
+		this.vowel = make('button', { 'class': 'vowel', 'type': 'button' });
+		this.consonant = make('button', { 'class': 'consonant', 'type': 'button' });
 
-		vowel.addEventListener('click', () => {
-			this.addLetter(pickRandom(VOWELS));
+		this.vowel.addEventListener('click', () => {
+			this.addLetter(pickRandom(this.remaining(VOWELS)));
 		});
-		consonant.addEventListener('click', () => {
-			this.addLetter(pickRandom(CONSONANTS));
+		this.consonant.addEventListener('click', () => {
+			this.addLetter(pickRandom(this.remaining(CONSONANTS)));
 		});
 
 		frame.appendChild(inputSection);
 		frame.appendChild(outputSection);
-		frame.appendChild(vowel);
-		frame.appendChild(consonant);
+		frame.appendChild(this.vowel);
+		frame.appendChild(this.consonant);
 		this.form.appendChild(frame);
 		this.form.appendChild(this.output);
 
@@ -114,6 +175,15 @@ export default class LettersUI {
 		}
 	}
 
+	_highlightBucket(bucket) {
+		this.vowel.className = `vowel ${bucket === 'VOWEL' ? 'highlight' : ''}`
+		this.consonant.className = `consonant ${bucket === 'CONSONANT' ? 'highlight' : ''}`
+	}
+
+	remaining(options) {
+		return optionsAfter(this.lastCalcLetters, options);
+	}
+
 	calculate() {
 		const letters = this._getLetters();
 		if (letters === this.lastCalcLetters) {
@@ -134,5 +204,24 @@ export default class LettersUI {
 			this.setOutputLetters(topWords[0] || '');
 			this.setOutputMessage(`${topWords.join('\n')}\n\n${count} calculated in ${time}ms (${initTime}ms to warm up)`);
 		});
+
+		this._highlightBucket(null);
+
+		if (letters.length >= 3 && letters.length < this.inputFields.length) {
+			const remainingVowels = this.remaining(VOWELS);
+			const remainingConsonants = this.remaining(CONSONANTS);
+			Promise.all([
+				this.worker.calculateExpected(addOptions(letters, remainingVowels)),
+				this.worker.calculateExpected(addOptions(letters, remainingConsonants)),
+			]).then(([v, c]) => {
+				if (Math.abs(v.weighted - c.weighted) < 0.01) {
+					this._highlightBucket(null);
+				} else if (v.weighted > c.weighted) {
+					this._highlightBucket('VOWEL');
+				} else {
+					this._highlightBucket('CONSONANT');
+				}
+			});
+		}
 	}
 };

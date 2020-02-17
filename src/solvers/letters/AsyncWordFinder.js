@@ -40,4 +40,8 @@ class AsyncWordFinder {
 	findWords(letters) {
 		return this._post({ type: 'SOLVE', letters });
 	}
+
+	calculateExpected(options) {
+		return this._post({ type: 'CALCULATE', options });
+	}
 }
