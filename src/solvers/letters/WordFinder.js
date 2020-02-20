@@ -1,7 +1,7 @@
 'use strict';
 
 function normalise(word) {
-	return word.toLowerCase().split('').sort().join('');
+	return word.split('').sort().join('');
 }
 
 function getSortedLetters(words) {
@@ -85,6 +85,32 @@ function traverse(tree, letters, pos, r) {
 	}
 }
 
+function count(word, c) {
+	let n = 0;
+	for (const w of word) {
+		if (w === c) {
+			++ n;
+		}
+	}
+	return n;
+}
+
+function optionsAfter(letters, options) {
+	return options
+		.map(({ c, p }) => ({ c, p: Math.max(0, p - count(letters, c)) }))
+		.filter(({ p }) => (p > 0));
+}
+
+function average(options) {
+	let t = 0;
+	let s = 0;
+	for (const { p, v } of options) {
+		t += p;
+		s += v * p;
+	}
+	return (t > 0) ? (s / t) : 0;
+}
+
 class WordFinder {
 	constructor(words) {
 		this.normedMap = makeNormedMap(words);
@@ -102,23 +128,66 @@ class WordFinder {
 		return r;
 	}
 
-	calculateExpected(options) {
-		let t = 0;
-		let s = 0;
-		let longest = 0;
-		let shortest = Number.POSITIVE_INFINITY;
-		for (const { p, letters } of options) {
-			const found = this.findWords(letters);
-			const length = (found.length > 0) ? found[0].length : 0;
-			longest = Math.max(longest, length);
-			shortest = Math.min(shortest, length);
-			t += p;
-			s += length * p;
+	_findBestLengthNormed(norm) {
+		const r = [];
+		traverse(this.wordTree, norm, 0, r);
+		let l = 0;
+		for (const w of r) {
+			l = Math.max(l, w.length);
 		}
-		return {
-			weighted: s / t,
-			longest,
-			shortest,
+		return l;
+	}
+
+	_pickBestGroup(norm, groups, n, cache) {
+		const cached = cache.get(norm);
+		if (cached) {
+			return cached;
+		}
+
+		if (n <= 0) {
+			const r = {
+				length: this._findBestLengthNormed(norm),
+				choice: null,
+				advantage: 0,
+			};
+			cache.set(norm, r);
+			return r;
+		}
+
+		let bestLength = 0;
+		let bestChoice = null;
+		let worstLength = Number.POSITIVE_INFINITY;
+		for (let i = 0; i < groups.length; ++ i) {
+			const characterOptions = optionsAfter(norm, groups[i]);
+			const expected = average(characterOptions.map(({ p, c }) => ({
+				p,
+				v: this._pickBestGroup(
+					normalise(norm + c),
+					groups,
+					n - 1,
+					cache,
+				).length,
+			})));
+
+			if (expected > bestLength) {
+				bestLength = expected;
+				bestChoice = i;
+			}
+			if (expected < worstLength) {
+				worstLength = expected;
+			}
+		}
+
+		const r = {
+			length: bestLength,
+			choice: bestChoice,
+			advantage: bestLength - worstLength,
 		};
+		cache.set(norm, r);
+		return r;
+	}
+
+	pickBestGroup(letters, groups, count) {
+		return this._pickBestGroup(normalise(letters), groups, count, new Map());
 	}
 }

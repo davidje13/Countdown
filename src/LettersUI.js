@@ -62,29 +62,38 @@ function count(word, c) {
 	return n;
 }
 
-function optionsAfter(letters, options) {
-	return options.map(({ c, p }) => {
-		return { c, p: Math.max(0, p - count(letters, c)) };
-	});
+function countAll(word, options) {
+	let n = 0;
+	for (const w of word) {
+		for (const { c } of options) {
+			if (w === c) {
+				++ n;
+				break;
+			}
+		}
+	}
+	return n;
 }
 
-function addOptions(base, options) {
-	const r = [];
-	for (const { c, p } of options) {
-		r.push({ letters: base + c, p });
-	}
-	return r;
+function optionsAfter(letters, options) {
+	return options
+		.map(({ c, p }) => ({ c, p: Math.max(0, p - count(letters, c)) }))
+		.filter(({ p }) => (p > 0));
 }
 
 export default class LettersUI {
 	constructor({
 		worker = null,
 		letterCount,
+		maxVowels,
+		maxConsonants,
 	}) {
 		this.form = make('form', {'class': 'letters', 'action': '#'});
 		this.inputFields = [];
 		this.outputFields = [];
 		this.worker = worker;
+		this.maxVowels = maxVowels;
+		this.maxConsonants = maxConsonants;
 		this.lastCalcLetters = '';
 
 		const frame = make('div', {'class': 'frame'});
@@ -142,6 +151,8 @@ export default class LettersUI {
 			e.preventDefault();
 			this.calculate();
 		});
+
+		this.highlightNextOptimal('');
 	}
 
 	dom() {
@@ -205,21 +216,36 @@ export default class LettersUI {
 			this.setOutputMessage(`${topWords.join('\n')}\n\n${count} calculated in ${time}ms (${initTime}ms to warm up)`);
 		});
 
+		this.highlightNextOptimal(letters);
+	}
+
+	highlightNextOptimal(letters) {
 		this._highlightBucket(null);
 
-		if (letters.length >= 3 && letters.length < this.inputFields.length) {
-			const remainingVowels = this.remaining(VOWELS);
-			const remainingConsonants = this.remaining(CONSONANTS);
-			Promise.all([
-				this.worker.calculateExpected(addOptions(letters, remainingVowels)),
-				this.worker.calculateExpected(addOptions(letters, remainingConsonants)),
-			]).then(([v, c]) => {
-				if (Math.abs(v.weighted - c.weighted) < 0.01) {
+		const remaining = this.inputFields.length - letters.length;
+		if (remaining <= 0) {
+			return;
+		}
+
+		const vowelCount = countAll(letters, VOWELS);
+		const consonantCount = letters.length - vowelCount;
+		const minVowels = this.inputFields.length - this.maxConsonants;
+		const minConsonants = this.inputFields.length - this.maxVowels;
+
+		if (vowelCount >= this.maxVowels || consonantCount < minConsonants) {
+			this._highlightBucket('CONSONANT');
+		} else if (consonantCount >= this.maxConsonants || vowelCount < minVowels) {
+			this._highlightBucket('VOWEL');
+		} else if (remaining <= 4) {
+			this.worker.pickBestGroup(
+				letters,
+				[VOWELS, CONSONANTS],
+				remaining,
+			).then(({ choice, advantage, time }) => {
+				if (advantage < 0.0001) {
 					this._highlightBucket(null);
-				} else if (v.weighted > c.weighted) {
-					this._highlightBucket('VOWEL');
 				} else {
-					this._highlightBucket('CONSONANT');
+					this._highlightBucket(choice === 1 ? 'CONSONANT' : 'VOWEL');
 				}
 			});
 		}

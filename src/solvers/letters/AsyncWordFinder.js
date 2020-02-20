@@ -41,7 +41,7 @@ class AsyncWordFinder {
 		return this._post({ type: 'SOLVE', letters });
 	}
 
-	calculateExpected(options) {
-		return this._post({ type: 'CALCULATE', options });
+	pickBestGroup(letters, groups, count) {
+		return this._post({ type: 'PICK_BEST', letters, groups, count });
 	}
 }

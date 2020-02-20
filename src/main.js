@@ -44,6 +44,8 @@ const letterWorker = new AsyncWordFinder();
 const lettersUI = new LettersUI({
 	worker: letterWorker,
 	letterCount: 9,
+	maxVowels: 5,
+	maxConsonants: 6,
 });
 
 document.body.appendChild(numbersUI.dom());

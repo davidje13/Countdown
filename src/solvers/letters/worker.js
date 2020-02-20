@@ -20,8 +20,8 @@ self.addEventListener('message', ({data}) => {
 	case 'SOLVE':
 		response.solutions = finder.findWords(data.letters);
 		break;
-	case 'CALCULATE':
-		Object.assign(response, finder.calculateExpected(data.options));
+	case 'PICK_BEST':
+		Object.assign(response, finder.pickBestGroup(data.letters, data.groups, data.count));
 		break;
 	}
 
