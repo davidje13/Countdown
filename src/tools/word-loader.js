@@ -12,7 +12,7 @@ const readline = require('readline');
 
 const MAX_LENGTH = 9;
 const MAX_VOWELS = 5;
-const MAX_CONSONANTS = 7;
+const MAX_CONSONANTS = 6;
 const WORD_REGEX = /^[a-z]+$/;
 const VOWEL_REGEX = /[aeiou]/g
 
