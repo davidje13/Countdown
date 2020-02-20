@@ -23,6 +23,23 @@ function countMatches(str, reg) {
 
 const rl = readline.createInterface({ input: process.stdin });
 
+function stringifyWithColLimit(list, limit) {
+	let ln = '';
+	const lines = []
+	for (const item of list) {
+		const s = JSON.stringify(item);
+		if (ln !== '' && ln.length + s.length + 1 > limit) {
+			lines.push(ln);
+			ln = '';
+		}
+		ln += s + ',';
+	}
+	if (ln) {
+		lines.push(ln);
+	}
+	return `[\n${lines.join('\n')}\n]`;
+}
+
 const words = [];
 rl.on('line', (word) => {
 	if (word.length > MAX_LENGTH || !WORD_REGEX.test(word)) {
@@ -40,5 +57,5 @@ rl.on('line', (word) => {
 
 rl.on('close', () => {
 	process.stdout.write('// generated file\n\n');
-	process.stdout.write(`const words = ${JSON.stringify(words)};\n`);
+	process.stdout.write(`const words = ${stringifyWithColLimit(words, 300)};\n`);
 });
