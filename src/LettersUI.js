@@ -1,6 +1,7 @@
 'use strict';
 
 import {make} from './dom.js';
+import {count, countAll, optionsAfter} from './utils/letter-utils.js';
 
 const LETTER_REGEX = /^[a-z]$/;
 
@@ -19,35 +20,6 @@ function pickRandom(list) {
 	}
 	// rounding errors could cause fall-through, so just return the last element
 	return list[list.length - 1].c;
-}
-
-function count(word, c) {
-	let n = 0;
-	for (const w of word) {
-		if (w === c) {
-			++ n;
-		}
-	}
-	return n;
-}
-
-function countAll(word, options) {
-	let n = 0;
-	for (const w of word) {
-		for (const { c } of options) {
-			if (w === c) {
-				++ n;
-				break;
-			}
-		}
-	}
-	return n;
-}
-
-function optionsAfter(letters, options) {
-	return options
-		.map(({ c, p }) => ({ c, p: Math.max(0, p - count(letters, c)) }))
-		.filter(({ p }) => (p > 0));
 }
 
 export default class LettersUI {

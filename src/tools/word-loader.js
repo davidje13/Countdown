@@ -1,5 +1,6 @@
 import readline from 'readline';
 import { letterOptions } from '../options.js';
+import { count, countAll } from '../utils/letter-utils.js';
 
 // officially this should use the Oxford Dictionary of English (ODE), but
 // instead we use a free wordlist source from Debian:
@@ -13,29 +14,6 @@ import { letterOptions } from '../options.js';
 
 const WORD_REGEX = /^[a-z]+$/;
 const allLetters = [...letterOptions.vowels, ...letterOptions.consonants];
-
-function count(word, c) {
-	let n = 0;
-	for (const w of word) {
-		if (w === c) {
-			++ n;
-		}
-	}
-	return n;
-}
-
-function countAll(word, options) {
-	let n = 0;
-	for (const w of word) {
-		for (const { c } of options) {
-			if (w === c) {
-				++ n;
-				break;
-			}
-		}
-	}
-	return n;
-}
 
 const rl = readline.createInterface({ input: process.stdin });
 
