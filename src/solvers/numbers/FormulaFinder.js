@@ -27,80 +27,60 @@ class FormulaFinder {
 		this.operators = operators;
 	}
 
-	findFormulas(inputs, target, {all}) {
-		if (all) {
-			return this.findAllFormulas(inputs, target);
-		} else {
-			const solution = this.findAnyFormula(inputs, target);
-			return solution ? [solution] : [];
-		}
+	findAllFormulas(inputs, target) {
+		return this.findAllNearest(inputs, target, { maxDist: 0 });
 	}
 
-	findAllFormulas(inputs, target) {
+	findAllNearest(inputs, target, {
+		rangeMin = 1,
+		rangeMax = Number.POSITIVE_INFINITY,
+		maxDist = Number.POSITIVE_INFINITY,
+	} = {}) {
 		const operators = this.operators;
 
 		if (inputs.includes(target)) {
 			return [new Formula()];
 		}
 
-		const solutions = [];
+		const finalActions = [];
+		let bestDist = maxDist + 1;
 		let current = new HashMap();
 		current.set(ValueCounter.of(inputs), [null]);
 
 		for (let n = 0; n < inputs.length - 1; ++ n) {
 			const next = new HashMap();
-			findOptions(current, operators, (vals, prevActs, a, b, op, v) => {
-				const action = new Formula.Action(a, b, op, prevActs);
+			findOptions(current, operators, (vals, prevAct, a, b, op, v) => {
+				const action = new Formula.Action(a, b, op, prevAct);
 
 				next.setIfAbsent(vals, []).push(action);
 
-				if (v === target) {
-					solutions.push(...Formula.fromLastActionTree(action));
+				if (v >= rangeMin && v <= rangeMax) {
+					const dist = Math.abs(v - target);
+					if (dist < bestDist) {
+						bestDist = dist;
+						finalActions.length = 0;
+					}
+					if (dist === bestDist) {
+						finalActions.push(action);
+					}
 				}
 			});
 			current = next;
 		}
 
-		if (solutions.length === 0) {
+		if (bestDist > maxDist) {
 			return [];
 		}
-		const filtered = solutions.filter((formula) => formula._isMinimal(inputs));
+		const filtered = [];
+		finalActions.forEach((action) => filtered.push(...Formula
+			.fromLastActionTree(action)
+			.filter((formula) => formula._isMinimal(inputs))
+		));
 		if (filtered.length === 0) {
 			// should never happen, but throw if it does to identify bugs
 			throw new Error('Internal error: filtering removed all solutions');
 		}
 		return filtered;
-	}
-
-	findAnyFormula(inputs, target) {
-		const operators = this.operators;
-
-		if (inputs.includes(target)) {
-			return new Formula();
-		}
-
-		let current = new HashMap();
-		current.set(ValueCounter.of(inputs), null);
-
-		for (let n = 0; n < inputs.length - 1; ++ n) {
-			const next = new HashMap();
-			const solutions = [];
-			findOptions(current, operators, (vals, prevAct, a, b, op, v) => {
-				const action = new Formula.Action(a, b, op, prevAct);
-
-				next.setIfAbsent(vals, action);
-
-				if (v === target) {
-					solutions.push(Formula.fromLastAction(action));
-				}
-			});
-			current = next;
-			if (solutions.length > 0) {
-				return solutions[0];
-			}
-		}
-
-		return null;
 	}
 
 	findTargets(inputs, {min = 1, max = Number.POSITIVE_INFINITY} = {}) {

@@ -39,28 +39,20 @@ class AsyncFormulaFinder {
 		this.awaiting.length = 0;
 	}
 
-	findFormulas(inputs, target, {all}) {
+	findAllFormulas(inputs, target) {
+		return this.findAllNearest(inputs, target, { maxDist: 0 });
+	}
+
+	findAllNearest(inputs, target, options) {
 		return this._post({
 			type: 'SOLVE',
 			inputs,
 			target,
-			options: {all},
+			options,
 		}).then(({solutions, time}) => ({
 			solutions: solutions.map(Formula.fromJSON),
 			time,
 		}));
-	}
-
-	findAllFormulas(inputs, target) {
-		return this.findFormulas(inputs, target, {all: true});
-	}
-
-	findAnyFormula(inputs, target) {
-		return this.findFormulas(inputs, target, {all: false})
-			.then(({solutions, time}) => ({
-				solution: solutions[0] || null,
-				time,
-			}));
 	}
 
 	findTargets(inputs, {min = 1, max = Number.POSITIVE_INFINITY} = {}) {

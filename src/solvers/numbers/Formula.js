@@ -179,6 +179,10 @@ class Formula {
 		this.length = actions.length;
 	}
 
+	result() {
+		return this.actions[this.actions.length - 1].result();
+	}
+
 	_isMinimal(inputs) {
 		if (this.actions.length === 0) {
 			return true;

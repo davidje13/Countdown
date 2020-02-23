@@ -20,7 +20,7 @@ self.addEventListener('message', ({data}) => {
 		break;
 	case 'SOLVE':
 		response.solutions = finder
-			.findFormulas(data.inputs, data.target, data.options)
+			.findAllNearest(data.inputs, data.target, data.options)
 			.map((solution) => solution.toJSON());
 		break;
 	case 'ANALYSE':

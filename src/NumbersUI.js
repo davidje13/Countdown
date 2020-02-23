@@ -199,19 +199,27 @@ export default class NumbersUI {
 		this.setOutput('Calculating\u2026');
 
 		this._setBusy(true);
-		this.solutionWorker.findAllFormulas(inputs, target)
+		this.solutionWorker.findAllNearest(inputs, target)
 			.then(({solutions, time}) => {
-				this._showSolution(solutions, time);
+				this._showSolution(solutions, target, time);
 				this._setBusy(false);
 			});
 	}
 
-	_showSolution(solutions, time) {
+	_showSolution(solutions, target, time) {
 		let message = '';
 
 		if (!solutions.length) {
 			message += 'No solution!\n\n';
 		} else {
+			const sampleResult = solutions[0].result();
+			if (sampleResult !== target) {
+				message += (
+					'No exact solution!\n\n' +
+					Math.abs(sampleResult - target) + ' away:\n\n'
+				);
+			}
+
 			solutions.sort((a, b) => (a.difficulty - b.difficulty));
 			const easiest = solutions[0];
 			const hardest = solutions[solutions.length - 1];
