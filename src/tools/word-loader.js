@@ -39,46 +39,49 @@ function countAll(word, options) {
 
 const rl = readline.createInterface({ input: process.stdin });
 
-function stringifyWithColLimit(list, limit) {
-	let ln = '';
-	const lines = []
-	for (const item of list) {
-		const s = JSON.stringify(item);
-		if (ln !== '' && ln.length + s.length + 1 > limit) {
-			lines.push(ln);
-			ln = '';
-		}
-		ln += s + ',';
-	}
-	if (ln) {
-		lines.push(ln);
-	}
-	return `[\n${lines.join('\n')}\n]`;
-}
+const colLimit = 300;
+let curLineLength = 0;
 
-const words = [];
-rl.on('line', (word) => {
+process.stdout.write('// generated file\n\nconst words = [\n');
+
+function checkWord(word) {
 	if (word.length > letterOptions.letterCount || !WORD_REGEX.test(word)) {
-		return;
+		return false;
 	}
 
 	const vowels = countAll(word, letterOptions.vowels);
 	const consonants = word.length - vowels;
 	if (vowels > letterOptions.maxVowels || consonants > letterOptions.maxConsonants) {
 		process.stderr.write(`skipping ${word}: ${vowels} vowels, ${consonants} consonants\n`);
-		return;
+		return false;
 	}
 	for (const { c, p } of allLetters) {
 		const n = count(word, c);
 		if (n > p) {
 			process.stderr.write(`skipping ${word}: ${n} * ${c} (${p} available)\n`);
-			return;
+			return false;
 		}
 	}
-	words.push(word);
+
+	return true;
+}
+
+function writeWord(word) {
+	const fragment = JSON.stringify(word) + ',';
+	if (curLineLength > 0 && curLineLength + fragment.length > colLimit) {
+		process.stdout.write('\n');
+		curLineLength = 0;
+	}
+	process.stdout.write(fragment);
+	curLineLength += fragment.length;
+}
+
+rl.on('line', (word) => {
+	if (checkWord(word)) {
+		writeWord(word);
+	}
 });
 
 rl.on('close', () => {
-	process.stdout.write('// generated file\n\n');
-	process.stdout.write(`const words = ${stringifyWithColLimit(words, 300)};\n`);
+	process.stdout.write('\n];\n');
 });
