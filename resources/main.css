@@ -8,6 +8,7 @@ input.nodecoration::-webkit-inner-spin-button {
 
 
 .letters, .numbers {
+	position: relative;
 	display: inline-block;
 	background: #5566BB;
 	margin: 20px;
@@ -18,6 +19,7 @@ input.nodecoration::-webkit-inner-spin-button {
 
 .letters {
 	float: right;
+	padding-bottom: calc(90px + 0.5em);
 }
 
 .numbers {
@@ -198,7 +200,10 @@ input.nodecoration::-webkit-inner-spin-button {
 }
 
 .letters .output-all {
-	margin-top: 0.5em;
+	position: absolute;
+	bottom: 0.5em;
+	overflow: auto;
+	height: 90px;
 	text-align: left;
 	white-space: pre-wrap;
 	font-family: monospace;

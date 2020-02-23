@@ -196,15 +196,33 @@ export default class LettersUI {
 		this.output.textContent = 'Calculating\u2026';
 
 		this.worker.findWords(letters).then(({ solutions, time, initTime }) => {
+			let message = '';
+
+			this.setOutputLetters(solutions[0] || '');
+
+			let l = -1;
+			for (const word of solutions) {
+				if (word.length !== l) {
+					if (l !== -1) {
+						message += '\n\n';
+					}
+					l = word.length;
+				} else {
+					message += ', ';
+				}
+				message += word;
+			}
+
 			let count = '';
 			if (solutions.length === 1) {
 				count = '1 solution';
 			} else {
 				count = solutions.length + ' solutions';
 			}
-			const topWords = solutions.slice(0, 50);
-			this.setOutputLetters(topWords[0] || '');
-			this.setOutputMessage(`${topWords.join('\n')}\n\n${count} calculated in ${time}ms (${initTime}ms to warm up)`);
+			message += `\n\n${count} calculated in ${time}ms`;
+			message += ` (${initTime}ms to warm up)`;
+
+			this.setOutputMessage(message);
 		});
 
 		this.highlightNextOptimal(letters);
