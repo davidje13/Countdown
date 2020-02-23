@@ -101,6 +101,7 @@ export default class LettersUI {
 		const outputSection = make('div', {'class': 'output'});
 
 		for (let i = 0; i < letterCount; ++ i) {
+			const thisI = i;
 			const input = make('input', {
 				'class': 'tile',
 				'type': 'text',
@@ -112,6 +113,51 @@ export default class LettersUI {
 
 			input.addEventListener('input', () => {
 				this.calculate();
+				if (input.value.length > 0 && thisI + 1 < this.inputFields.length) {
+					this.inputFields[thisI + 1].focus();
+				}
+			});
+
+			input.addEventListener('paste', (e) => {
+				e.preventDefault();
+				const pasted = e.clipboardData.getData('text')
+					.toLowerCase()
+					.replace(/[^a-z]/g, '');
+
+				const limit = Math.min(pasted.length, this.inputFields.length - thisI);
+				for (let j = 0; j < limit; ++ j) {
+					this.inputFields[thisI + j].value = pasted[j];
+				}
+				const next = Math.min(thisI + pasted.length, this.inputFields.length - 1);
+				this.inputFields[next].focus();
+				this.calculate();
+			});
+
+			input.addEventListener('keydown', (e) => {
+				switch (e.key) {
+				case 'ArrowLeft':
+					if (thisI > 0) {
+						e.preventDefault();
+						this.inputFields[thisI - 1].focus();
+						this.inputFields[thisI - 1].select();
+					}
+					break;
+				case 'ArrowRight':
+					if (thisI + 1 < this.inputFields.length) {
+						e.preventDefault();
+						this.inputFields[thisI + 1].focus();
+						this.inputFields[thisI + 1].select();
+					}
+					break;
+				case 'Backspace':
+					if (thisI > 0 && !input.value) {
+						e.preventDefault();
+						this.inputFields[thisI - 1].value = '';
+						this.inputFields[thisI - 1].focus();
+						this.calculate();
+					}
+					break;
+				}
 			});
 
 			inputSection.appendChild(input);
