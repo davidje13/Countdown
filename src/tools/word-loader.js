@@ -12,6 +12,17 @@ import { letterOptions } from '../options.js';
 // node src/tools/word-loader.js < wordlist > src/solvers/letters/generated-data.js
 
 const WORD_REGEX = /^[a-z]+$/;
+const allLetters = [...letterOptions.vowels, ...letterOptions.consonants];
+
+function count(word, c) {
+	let n = 0;
+	for (const w of word) {
+		if (w === c) {
+			++ n;
+		}
+	}
+	return n;
+}
 
 function countAll(word, options) {
 	let n = 0;
@@ -56,6 +67,13 @@ rl.on('line', (word) => {
 	if (vowels > letterOptions.maxVowels || consonants > letterOptions.maxConsonants) {
 		process.stderr.write(`skipping ${word}: ${vowels} vowels, ${consonants} consonants\n`);
 		return;
+	}
+	for (const { c, p } of allLetters) {
+		const n = count(word, c);
+		if (n > p) {
+			process.stderr.write(`skipping ${word}: ${n} * ${c} (${p} available)\n`);
+			return;
+		}
 	}
 	words.push(word);
 });
