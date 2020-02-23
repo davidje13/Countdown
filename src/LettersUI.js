@@ -242,10 +242,26 @@ export default class LettersUI {
 		const minConsonants = this.inputFields.length - this.maxVowels;
 
 		if (vowelCount >= this.maxVowels || consonantCount < minConsonants) {
-			this._highlightBucket('CONSONANT');
+			if (vowelCount < minVowels) {
+				// need more vowels and consonants to fulfil limits;
+				// not a real choice (since both a vowel and consonant are needed)
+				// pick best option for immediate word finding
+				this.worker.pickBestGroup(
+					letters,
+					[this.vowels, this.consonants],
+					1,
+				).then(({ choice, advantage, time }) => {
+					this._highlightBucket(choice === 1 ? 'CONSONANT' : 'VOWEL');
+				});
+			} else {
+				// need more consonants to fulfil limits
+				this._highlightBucket('CONSONANT');
+			}
 		} else if (consonantCount >= this.maxConsonants || vowelCount < minVowels) {
+			// need more vowels to fulfil limits
 			this._highlightBucket('VOWEL');
 		} else if (remaining <= 4) {
+			// free choice of vowel/consonant; pick for best expected word length
 			this.worker.pickBestGroup(
 				letters,
 				[this.vowels, this.consonants],
