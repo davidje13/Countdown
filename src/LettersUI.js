@@ -21,37 +21,6 @@ function pickRandom(list) {
 	return list[list.length - 1].c;
 }
 
-const VOWELS = [
-	{ c: 'a', p: 15 },
-	{ c: 'e', p: 21 },
-	{ c: 'i', p: 13 },
-	{ c: 'o', p: 13 },
-	{ c: 'u', p: 5 },
-];
-const CONSONANTS = [
-	{ c: 'b', p: 2 },
-	{ c: 'c', p: 3 },
-	{ c: 'd', p: 6 },
-	{ c: 'f', p: 2 },
-	{ c: 'g', p: 3 },
-	{ c: 'h', p: 2 },
-	{ c: 'j', p: 1 },
-	{ c: 'k', p: 1 },
-	{ c: 'l', p: 5 },
-	{ c: 'm', p: 4 },
-	{ c: 'n', p: 8 },
-	{ c: 'p', p: 4 },
-	{ c: 'q', p: 1 },
-	{ c: 'r', p: 9 },
-	{ c: 's', p: 9 },
-	{ c: 't', p: 9 },
-	{ c: 'v', p: 1 },
-	{ c: 'w', p: 1 },
-	{ c: 'x', p: 1 },
-	{ c: 'y', p: 1 },
-	{ c: 'z', p: 1 },
-];
-
 function count(word, c) {
 	let n = 0;
 	for (const w of word) {
@@ -87,6 +56,8 @@ export default class LettersUI {
 		letterCount,
 		maxVowels,
 		maxConsonants,
+		vowels,
+		consonants,
 	}) {
 		this.form = make('form', {'class': 'letters', 'action': '#'});
 		this.inputFields = [];
@@ -94,6 +65,8 @@ export default class LettersUI {
 		this.worker = worker;
 		this.maxVowels = maxVowels;
 		this.maxConsonants = maxConsonants;
+		this.vowels = vowels;
+		this.consonants = consonants;
 		this.lastCalcLetters = '';
 
 		const frame = make('div', {'class': 'frame'});
@@ -180,10 +153,10 @@ export default class LettersUI {
 		this.consonant = make('button', { 'class': 'consonant', 'type': 'button' });
 
 		this.vowel.addEventListener('click', () => {
-			this.addLetter(pickRandom(this.remaining(VOWELS)));
+			this.addLetter(pickRandom(this.remaining(this.vowels)));
 		});
 		this.consonant.addEventListener('click', () => {
-			this.addLetter(pickRandom(this.remaining(CONSONANTS)));
+			this.addLetter(pickRandom(this.remaining(this.consonants)));
 		});
 
 		frame.appendChild(inputSection);
@@ -273,7 +246,7 @@ export default class LettersUI {
 			return;
 		}
 
-		const vowelCount = countAll(letters, VOWELS);
+		const vowelCount = countAll(letters, this.vowels);
 		const consonantCount = letters.length - vowelCount;
 		const minVowels = this.inputFields.length - this.maxConsonants;
 		const minConsonants = this.inputFields.length - this.maxVowels;
@@ -285,7 +258,7 @@ export default class LettersUI {
 		} else if (remaining <= 4) {
 			this.worker.pickBestGroup(
 				letters,
-				[VOWELS, CONSONANTS],
+				[this.vowels, this.consonants],
 				remaining,
 			).then(({ choice, advantage, time }) => {
 				if (advantage < 0.0001) {

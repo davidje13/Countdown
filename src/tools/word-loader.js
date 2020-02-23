@@ -1,4 +1,5 @@
-const readline = require('readline');
+import readline from 'readline';
+import { letterOptions } from '../options.js';
 
 // officially this should use the Oxford Dictionary of English (ODE), but
 // instead we use a free wordlist source from Debian:
@@ -10,15 +11,19 @@ const readline = require('readline');
 // rm -rf control.tar.gz data.tar.gz debian-binary usr/ var/ wb.deb
 // node src/tools/word-loader.js < wordlist > src/solvers/letters/generated-data.js
 
-const MAX_LENGTH = 9;
-const MAX_VOWELS = 5;
-const MAX_CONSONANTS = 6;
 const WORD_REGEX = /^[a-z]+$/;
-const VOWEL_REGEX = /[aeiou]/g
 
-function countMatches(str, reg) {
-	const m = str.match(reg);
-	return m ? m.length : 0;
+function countAll(word, options) {
+	let n = 0;
+	for (const w of word) {
+		for (const { c } of options) {
+			if (w === c) {
+				++ n;
+				break;
+			}
+		}
+	}
+	return n;
 }
 
 const rl = readline.createInterface({ input: process.stdin });
@@ -42,13 +47,13 @@ function stringifyWithColLimit(list, limit) {
 
 const words = [];
 rl.on('line', (word) => {
-	if (word.length > MAX_LENGTH || !WORD_REGEX.test(word)) {
+	if (word.length > letterOptions.letterCount || !WORD_REGEX.test(word)) {
 		return;
 	}
 
-	const vowels = countMatches(word, VOWEL_REGEX);
+	const vowels = countAll(word, letterOptions.vowels);
 	const consonants = word.length - vowels;
-	if (vowels > MAX_VOWELS || consonants > MAX_CONSONANTS) {
+	if (vowels > letterOptions.maxVowels || consonants > letterOptions.maxConsonants) {
 		process.stderr.write(`skipping ${word}: ${vowels} vowels, ${consonants} consonants\n`);
 		return;
 	}

@@ -8,6 +8,9 @@
       location = "container:src">
    </FileRef>
    <FileRef
+      location = "container:package.json">
+   </FileRef>
+   <FileRef
       location = "container:index.html">
    </FileRef>
    <FileRef
