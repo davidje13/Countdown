@@ -6,6 +6,12 @@ input.nodecoration::-webkit-inner-spin-button {
 	display: none;
 }
 
+table, tbody, tr, td, h1, h2, h3, h4, h5, h6, p {
+	margin: 0;
+	padding: 0;
+	border: none;
+	font: inherit;
+}
 
 .letters, .numbers {
 	position: relative;
@@ -128,6 +134,52 @@ input.nodecoration::-webkit-inner-spin-button {
 		linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, rgba(0, 0, 0, 0) 1px),
 		linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, rgba(0, 0, 0, 0) 1px);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.numbers .output h2 {
+	margin: 1.4em 0 0.5em;
+	font-size: 1.1em;
+	font-weight: bolder;
+}
+
+.numbers .output h3 {
+	margin: 1.2em 0 0.3em;
+	font-size: 1.05em;
+	font-weight: bolder;
+}
+
+.numbers .output table {
+	margin: 0.8em 0;
+	margin-right: 3em;
+	line-height: 1.2em;
+	display: inline-block;
+}
+
+.numbers .output p {
+	margin: 0.8em 0;
+}
+
+.numbers .output .num-right {
+	text-align: right;
+	padding: 0 0.3em;
+}
+
+.numbers .output .result .num-right {
+	border-top: 2px solid #000000;
+}
+
+.numbers .output .num-eq {
+	padding: 0 0.3em;
+}
+
+.numbers .output .vert-op {
+	position: relative;
+	top: 0.6em;
+	padding-left: 0.2em;
+}
+
+.numbers .output .final {
+	padding-left: 1.2em;
 }
 
 .letters .vowel, .letters .consonant {

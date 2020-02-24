@@ -27,6 +27,10 @@ class Action {
 		return this.op.difficulty(this.a, this.b);
 	}
 
+	symbol() {
+		return this.op.name;
+	}
+
 	toString() {
 		return (
 			this.a +
@@ -54,6 +58,10 @@ class FlatAction {
 
 	result() {
 		return this.r;
+	}
+
+	symbol() {
+		return this.op;
 	}
 
 	toString() {

@@ -1,6 +1,7 @@
 'use strict';
 
 import {make} from './dom.js';
+import {formulaDom} from './formulaPrinter.js';
 
 function readNumeric(input) {
 	return input.value|0;
@@ -18,6 +19,16 @@ function waitUntil(time) {
 	return (data) => new Promise((resolve) => {
 		setTimeout(() => resolve(data), time - Date.now());
 	});
+}
+
+function block(tag, text) {
+	const p = make(tag);
+	p.textContent = text;
+	return p;
+}
+
+function paragraph(text) {
+	return block('p', text);
 }
 
 export default class NumbersUI {
@@ -208,16 +219,15 @@ export default class NumbersUI {
 
 	_showSolution(solutions, target, time) {
 		let message = '';
+		this.setOutput('');
 
 		if (!solutions.length) {
-			message += 'No solution!\n\n';
+			this.output.appendChild(paragraph('No solution!'));
 		} else {
 			const sampleResult = solutions[0].result();
 			if (sampleResult !== target) {
-				message += (
-					'No exact solution!\n\n' +
-					Math.abs(sampleResult - target) + ' away:\n\n'
-				);
+				this.output.appendChild(paragraph('No exact solution!'));
+				this.output.appendChild(block('h2', `${Math.abs(sampleResult - target)} away:`));
 			}
 
 			solutions.sort((a, b) => (a.difficulty - b.difficulty));
@@ -227,16 +237,18 @@ export default class NumbersUI {
 			solutions.sort((a, b) => (a.length - b.length));
 			const shortest = solutions[0];
 
-			message += easiest.toString() + '\n';
+			this.output.appendChild(formulaDom(easiest));
 
 			if (easiest.difficulty + 500 < hardest.difficulty) {
-				message += 'Hardest method:\n' + hardest.toString() + '\n';
+				this.output.appendChild(block('h3', 'Hardest method:'));
+				this.output.appendChild(formulaDom(hardest));
 			}
 			if (
 				shortest.length < easiest.length &&
 				shortest.length < hardest.length
 			) {
-				message += 'Shortest method:\n' + shortest.toString() + '\n';
+				this.output.appendChild(block('h3', 'Shortest method:'));
+				this.output.appendChild(formulaDom(shortest));
 			}
 		}
 
@@ -246,6 +258,6 @@ export default class NumbersUI {
 		} else {
 			count = solutions.length + ' solutions';
 		}
-		this.setOutput(message + '\u2014 ' + count + ' calculated in ' + time + 'ms');
+		this.output.appendChild(paragraph(`\u2014 ${count} calculated in ${time}ms`));
 	}
 };
