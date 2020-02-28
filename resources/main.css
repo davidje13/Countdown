@@ -1,3 +1,7 @@
+body {
+	background: #77A6E8;
+}
+
 input.nodecoration {
 	-moz-appearance: textfield;
 }
