@@ -253,7 +253,10 @@ table, tbody, tr, td, h1, h2, h3, h4, h5, h6, p {
 
 .letters .output-all {
 	position: absolute;
-	bottom: 0.5em;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 0 0.5em 0.5em;
 	overflow: auto;
 	height: 90px;
 	text-align: left;
