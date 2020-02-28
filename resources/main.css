@@ -208,6 +208,8 @@ table, tbody, tr, td, h1, h2, h3, h4, h5, h6, p {
 	box-shadow:
 		inset 1px 2px 5px rgba(0, 0, 0, 0.2),
 		3px 0 1px #444444;
+	transition: 0.2s ease text-shadow;
+	transition: 0.1s ease background;
 }
 
 .letters .highlight:before {
