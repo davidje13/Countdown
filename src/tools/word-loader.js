@@ -5,13 +5,6 @@ import { count, countAll } from '../utils/letter-utils.js';
 // officially this should use the Oxford Dictionary of English (ODE), but
 // instead we use a free wordlist source from Debian:
 
-// curl http://launchpadlibrarian.net/83495812/wbritish-huge_7.1-1_all.deb > wb.deb
-// ar -x wb.deb
-// tar -xvf data.tar.gz
-// mv usr/share/dict/british-english-huge wordlist
-// rm -rf control.tar.gz data.tar.gz debian-binary usr/ var/ wb.deb
-// node src/tools/word-loader.js < wordlist > src/solvers/letters/generated-data.js
-
 const WORD_REGEX = /^[a-z]+$/;
 const allLetters = [...letterOptions.vowels, ...letterOptions.consonants];
 
@@ -20,7 +13,7 @@ const rl = readline.createInterface({ input: process.stdin });
 const colLimit = 300;
 let curLineLength = 0;
 
-process.stdout.write('// generated file\n\nconst words = [\n');
+process.stdout.write(`// generated file\n\nconst ${process.argv[2] || 'words'} = [\n`);
 
 function checkWord(word) {
 	if (word.length > letterOptions.letterCount || !WORD_REGEX.test(word)) {

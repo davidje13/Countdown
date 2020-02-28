@@ -1,6 +1,6 @@
 'use strict';
 
-import {make} from './dom.js';
+import {make, block, paragraph, textnode} from './dom.js';
 import {count, countAll, optionsAfter} from './utils/letter-utils.js';
 
 const LETTER_REGEX = /^[a-z]$/;
@@ -21,6 +21,8 @@ function pickRandom(list) {
 	// rounding errors could cause fall-through, so just return the last element
 	return list[list.length - 1].c;
 }
+
+const BLANK = { word: '', freq: 0 };
 
 export default class LettersUI {
 	constructor({
@@ -156,10 +158,6 @@ export default class LettersUI {
 		}
 	}
 
-	setOutputMessage(msg) {
-		this.output.textContent = msg;
-	}
-
 	_getLetters() {
 		return this.inputFields
 			.map((f) => f.value.toLowerCase())
@@ -196,22 +194,51 @@ export default class LettersUI {
 		this.output.textContent = 'Calculating\u2026';
 
 		this.worker.findWords(letters).then(({ solutions, time, initTime }) => {
-			let message = '';
+			this.output.textContent = '';
 
-			this.setOutputLetters(solutions[0] || '');
+			// display longest non-risky word
+			solutions.sort((a, b) => {
+				return (
+					((b.freq > 1) - (a.freq > 1)) ||
+					(b.word.length - a.word.length) ||
+					(b.freq - a.freq)
+				);
+			});
 
-			let l = -1;
-			for (const word of solutions) {
-				if (word.length !== l) {
-					if (l !== -1) {
-						message += '\n\n';
+			this.setOutputLetters((solutions[0] || BLANK).word);
+
+			// display all words from longest to shortest, safest to riskiest
+			solutions.sort((a, b) => {
+				return (
+					(b.word.length - a.word.length) ||
+					(b.freq - a.freq)
+				);
+			});
+
+			const wordsOut = paragraph();
+			let nonRiskyLength = -1;
+			for (const wordInfo of solutions) {
+				const risky = wordInfo.freq <= 1;
+				if (risky) {
+					if (wordInfo.word.length === nonRiskyLength) {
+						// don't show risky words if we already have
+						// non-risky words which are just as good
+						continue;
 					}
-					l = word.length;
 				} else {
-					message += ', ';
+					nonRiskyLength = wordInfo.word.length;
 				}
-				message += word;
+
+				wordsOut.appendChild(block('span', wordInfo.word, {
+					'class': risky ? 'risky word' : 'word',
+					title: risky ? 'risky' : '',
+				}));
+				wordsOut.appendChild(textnode(', '));
 			}
+			if (wordsOut.lastChild) {
+				wordsOut.removeChild(wordsOut.lastChild);
+			}
+			this.output.appendChild(wordsOut);
 
 			let count = '';
 			if (solutions.length === 1) {
@@ -219,10 +246,9 @@ export default class LettersUI {
 			} else {
 				count = solutions.length + ' solutions';
 			}
-			message += `\n\n${count} calculated in ${time}ms`;
-			message += ` (${initTime}ms to warm up)`;
-
-			this.setOutputMessage(message);
+			this.output.appendChild(paragraph(
+				`${count} calculated in ${time}ms (${initTime}ms to warm up)`,
+			));
 		});
 
 		this.highlightNextOptimal(letters);

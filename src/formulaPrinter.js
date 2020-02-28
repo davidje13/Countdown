@@ -1,12 +1,6 @@
 'use strict';
 
-import {make} from './dom.js';
-
-function block(tag, text, attrs) {
-	const p = make(tag, attrs);
-	p.textContent = text;
-	return p;
-}
+import {make, block} from './dom.js';
 
 const ADD = '+';
 const SUBTRACT = '\u2212';

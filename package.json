@@ -2,7 +2,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "http-server . -p 8080 -o",
-		"loadwords": "node src/tools/word-loader.js < wordlist > src/solvers/letters/generated-data.js"
+		"loadwords": "src/tools/word-loader.sh"
 	},
 	"devDependencies": {
 		"http-server": "0.*"

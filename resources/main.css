@@ -261,3 +261,14 @@ table, tbody, tr, td, h1, h2, h3, h4, h5, h6, p {
 	font-family: monospace;
 	color: #FFFFFF;
 }
+
+.letters p {
+	margin-bottom: 5px;
+}
+
+.letters .word.risky {
+	font-style: italic;
+	color: rgba(255, 255, 255, 0.7);
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+}

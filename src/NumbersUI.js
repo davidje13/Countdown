@@ -1,6 +1,6 @@
 'use strict';
 
-import {make} from './dom.js';
+import {make, block, paragraph} from './dom.js';
 import {formulaDom} from './formulaPrinter.js';
 
 function readNumeric(input) {
@@ -19,16 +19,6 @@ function waitUntil(time) {
 	return (data) => new Promise((resolve) => {
 		setTimeout(() => resolve(data), time - Date.now());
 	});
-}
-
-function block(tag, text) {
-	const p = make(tag);
-	p.textContent = text;
-	return p;
-}
-
-function paragraph(text) {
-	return block('p', text);
 }
 
 export default class NumbersUI {

@@ -54,14 +54,14 @@ function makeWordTree(normedMap) {
 
 function makeNormedMap(words) {
 	const normedMap = new Map();
-	for (const word of words) {
-		const norm = normalise(word);
+	for (const wordInfo of words) {
+		const norm = normalise(wordInfo.word);
 		let s = normedMap.get(norm);
 		if (!s) {
 			s = [];
 			normedMap.set(norm, s);
 		}
-		s.push(word);
+		s.push(wordInfo);
 	}
 	return normedMap;
 }
@@ -124,7 +124,6 @@ class WordFinder {
 	findWords(letters) {
 		const r = [];
 		traverse(this.wordTree, normalise(letters), 0, r);
-		r.sort((a, b) => (b.length - a.length));
 		return r;
 	}
 
@@ -132,8 +131,8 @@ class WordFinder {
 		const r = [];
 		traverse(this.wordTree, norm, 0, r);
 		let l = 0;
-		for (const w of r) {
-			l = Math.max(l, w.length);
+		for (const wordInfo of r) {
+			l = Math.max(l, wordInfo.word.length);
 		}
 		return l;
 	}
