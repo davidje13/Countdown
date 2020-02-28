@@ -1,6 +1,8 @@
 set -e
 
 BASE_DIR="$(dirname "$0")";
+GENFILE="$BASE_DIR/../solvers/letters/generated-data.js";
+GENBIN="$BASE_DIR/word-loader.js";
 
 function download_words() {
 	URL="$1";
@@ -12,7 +14,7 @@ function download_words() {
 		ar -x wb.deb;
 		tar -xvf data.tar.*;
 		cd -;
-		mv "temp/usr/share/dict"/* "$FILE";
+		grep -x '[a-z]*' "temp/usr/share/dict"/* | sort > "$FILE";
 		rm -rf temp;
 	fi;
 }
@@ -22,10 +24,10 @@ download_words \
 	"http://ftp.uk.debian.org/debian/pool/main/s/scowl/wbritish-small_2018.04.16-1_all.deb" \
 	"british-english-small";
 
-## https://packages.debian.org/sid/wbritish
-#download_words \
-#	"http://ftp.uk.debian.org/debian/pool/main/s/scowl/wbritish_2018.04.16-1_all.deb" \
-#	"british-english";
+# https://packages.debian.org/sid/wbritish
+download_words \
+	"http://ftp.uk.debian.org/debian/pool/main/s/scowl/wbritish_2018.04.16-1_all.deb" \
+	"british-english";
 
 # https://packages.debian.org/sid/wbritish-large
 download_words \
@@ -37,20 +39,28 @@ download_words \
 	"http://ftp.uk.debian.org/debian/pool/main/s/scowl/wbritish-huge_2018.04.16-1_all.deb" \
 	"british-english-huge";
 
-## https://packages.debian.org/sid/wbritish-insane
-#download_words \
-#	"http://ftp.uk.debian.org/debian/pool/main/s/scowl/wbritish-insane_2018.04.16-1_all.deb" \
-#	"british-english-insane";
+# https://packages.debian.org/sid/wbritish-insane
+download_words \
+	"http://ftp.uk.debian.org/debian/pool/main/s/scowl/wbritish-insane_2018.04.16-1_all.deb" \
+	"british-english-insane";
 
-grep -x '[a-z]*' british-english-small | sort > british-english-small-filtered;
-grep -x '[a-z]*' british-english-large | sort > british-english-large-filtered;
-grep -x '[a-z]*' british-english-huge | sort > british-english-huge-filtered;
 
-cat british-english-small-filtered \
-| node "$BASE_DIR/word-loader.js" "commonWords" > "$BASE_DIR/../solvers/letters/generated-data-common.js";
+echo '// generated file' > "$GENFILE";
+echo >> "$GENFILE";
 
-comm -23 british-english-large-filtered british-english-small-filtered \
-| node "$BASE_DIR/word-loader.js" "standardWords" > "$BASE_DIR/../solvers/letters/generated-data-standard.js";
+cat british-english-small | node "$BASE_DIR/word-loader.js" "wordsSmall" >> "$GENFILE";
+comm -23 british-english british-english-small | node "$GENBIN" "wordsNormal" >> "$GENFILE";
+comm -23 british-english-large british-english | node "$GENBIN" "wordsLarge" >> "$GENFILE";
+comm -23 british-english-huge british-english-large | node "$GENBIN" "wordsHuge" >> "$GENFILE";
+comm -23 british-english-insane british-english-huge | node "$GENBIN" "wordsInsane" >> "$GENFILE";
 
-comm -23 british-english-huge-filtered british-english-large-filtered \
-| node "$BASE_DIR/word-loader.js" "rareWords" > "$BASE_DIR/../solvers/letters/generated-data-rare.js";
+echo >> "$GENFILE";
+cat <<EOF >> "$GENFILE";
+const words = [
+	...wordsSmall.map((word) => ({ word, freq: 4 })),
+	...wordsNormal.map((word) => ({ word, freq: 3 })),
+	...wordsLarge.map((word) => ({ word, freq: 2 })),
+	...wordsHuge.map((word) => ({ word, freq: 1 })),
+	...wordsInsane.map((word) => ({ word, freq: 0 })),
+];
+EOF

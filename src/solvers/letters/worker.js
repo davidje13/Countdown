@@ -2,17 +2,11 @@
 
 importScripts(
 	'./WordFinder.js',
-	'./generated-data-common.js',
-	'./generated-data-standard.js',
-	'./generated-data-rare.js'
+	'./generated-data.js',
 );
 
 const initTm0 = Date.now();
-const finder = new WordFinder([
-	...commonWords.map((word) => ({ word, freq: 3 })),
-	...standardWords.map((word) => ({ word, freq: 2 })),
-	...rareWords.map((word) => ({ word, freq: 1 })),
-]);
+const finder = new WordFinder(words);
 const initTm1 = Date.now();
 
 self.addEventListener('message', ({data}) => {

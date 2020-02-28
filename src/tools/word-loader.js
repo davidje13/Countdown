@@ -13,7 +13,7 @@ const rl = readline.createInterface({ input: process.stdin });
 const colLimit = 300;
 let curLineLength = 0;
 
-process.stdout.write(`// generated file\n\nconst ${process.argv[2] || 'words'} = [\n`);
+process.stdout.write(`const ${process.argv[2] || 'words'} = [\n`);
 
 function checkWord(word) {
 	if (word.length > letterOptions.letterCount || !WORD_REGEX.test(word)) {
