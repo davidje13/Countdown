@@ -1,0 +1,13 @@
+image: alpine:latest
+workflow:
+  rules:
+  - if: '$CI_COMMIT_BRANCH'
+pages:
+  rules:
+  - if: '$CI_COMMIT_BRANCH == "master"'
+  script:
+  - mkdir -p public
+  - mv resources src favicon.png index.html public
+  artifacts:
+    paths:
+    - public
