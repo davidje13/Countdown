@@ -38,7 +38,7 @@ const lettersUI = new LettersUI({
 
 document.body.appendChild(numbersUI.dom());
 document.body.appendChild(lettersUI.dom());
-document.body.appendChild(numberPicker.dom());
+//document.body.appendChild(numberPicker.dom());
 
 // 100, 75, 50, 25, 6, 3 -> 952
 // 100, 75, 50, 25, 9, 8 -> 490
